@@ -7,17 +7,130 @@ const PROJECTS_DIR = path.join(CLAUDE_DIR, 'projects');
 const GLOBAL_SETTINGS_FILE = path.join(CLAUDE_DIR, 'settings.local.json');
 const USER_CONFIG_FILE = path.join(os.homedir(), '.claude.json');
 const PLUGINS_DIR = path.join(CLAUDE_DIR, 'plugins', 'marketplaces');
+const BACKUPS_DIR = path.join(CLAUDE_DIR, 'mcp-manager-backups');
+const MAX_BACKUPS_PER_FILE = 5;
 
 /**
- * Create a backup of a file before modifying it
+ * Create a timestamped backup of a file before modifying it
+ * Maintains a rotation of MAX_BACKUPS_PER_FILE backups
  */
 export async function createBackup(filePath) {
-    if (await fs.pathExists(filePath)) {
-        const backupPath = `${filePath}.bak`;
-        await fs.copy(filePath, backupPath);
-        return backupPath;
+    if (!await fs.pathExists(filePath)) {
+        return null;
     }
-    return null;
+
+    await fs.ensureDir(BACKUPS_DIR);
+
+    // Generate timestamped backup filename
+    const fileName = path.basename(filePath);
+    const dirName = path.dirname(filePath).replace(/[\/\\]/g, '_').replace(/^_/, '');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupFileName = `${dirName}_${fileName}_${timestamp}.bak`;
+    const backupPath = path.join(BACKUPS_DIR, backupFileName);
+
+    // Create the backup
+    await fs.copy(filePath, backupPath);
+
+    // Rotate old backups (keep only MAX_BACKUPS_PER_FILE)
+    await rotateBackups(fileName, dirName);
+
+    return backupPath;
+}
+
+/**
+ * Keep only the most recent backups for a file
+ */
+async function rotateBackups(fileName, dirName) {
+    const pattern = `${dirName}_${fileName}_`;
+    const allFiles = await fs.readdir(BACKUPS_DIR);
+    const matchingBackups = allFiles
+        .filter(f => f.startsWith(pattern) && f.endsWith('.bak'))
+        .sort()
+        .reverse(); // Most recent first
+
+    // Delete old backups beyond the limit
+    for (let i = MAX_BACKUPS_PER_FILE; i < matchingBackups.length; i++) {
+        await fs.remove(path.join(BACKUPS_DIR, matchingBackups[i]));
+    }
+}
+
+/**
+ * List all backups
+ */
+export async function listBackups() {
+    if (!await fs.pathExists(BACKUPS_DIR)) {
+        return [];
+    }
+
+    const files = await fs.readdir(BACKUPS_DIR);
+    const backups = [];
+
+    for (const file of files) {
+        if (!file.endsWith('.bak')) continue;
+
+        const filePath = path.join(BACKUPS_DIR, file);
+        const stats = await fs.stat(filePath);
+
+        // Parse backup filename: dirPath_fileName_timestamp.bak
+        const parts = file.replace('.bak', '').split('_');
+        const timestamp = parts.pop();
+        const fileName = parts.pop();
+        const dirPath = parts.join('/').replace(/^/, '/');
+
+        backups.push({
+            id: file,
+            fileName,
+            originalPath: path.join(dirPath, fileName),
+            backupPath: filePath,
+            timestamp: timestamp.replace(/-/g, ':').replace('T', ' ').slice(0, 19),
+            size: stats.size,
+            createdAt: stats.mtime
+        });
+    }
+
+    return backups.sort((a, b) => b.createdAt - a.createdAt);
+}
+
+/**
+ * Restore a backup
+ */
+export async function restoreBackup(backupId) {
+    const backupPath = path.join(BACKUPS_DIR, backupId);
+
+    if (!await fs.pathExists(backupPath)) {
+        throw new Error('Backup not found');
+    }
+
+    // Parse original path from backup filename
+    const parts = backupId.replace('.bak', '').split('_');
+    parts.pop(); // Remove timestamp
+    const fileName = parts.pop();
+    const dirPath = parts.join('/').replace(/^/, '/');
+    const originalPath = path.join(dirPath, fileName);
+
+    // Create a backup of current state before restoring
+    if (await fs.pathExists(originalPath)) {
+        await createBackup(originalPath);
+    }
+
+    // Restore the backup
+    await fs.copy(backupPath, originalPath);
+
+    return originalPath;
+}
+
+/**
+ * Delete a backup
+ */
+export async function deleteBackup(backupId) {
+    const backupPath = path.join(BACKUPS_DIR, backupId);
+
+    if (!await fs.pathExists(backupPath)) {
+        throw new Error('Backup not found');
+    }
+
+    await fs.remove(backupPath);
+    return true;
 }
 
 /**
@@ -558,5 +671,8 @@ export default {
     deleteServer,
     toggleServer,
     getMarketplaceTemplates,
-    createBackup
+    createBackup,
+    listBackups,
+    restoreBackup,
+    deleteBackup
 };
