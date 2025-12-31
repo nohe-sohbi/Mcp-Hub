@@ -1,0 +1,32 @@
+import express from 'express';
+import cors from 'cors';
+import serversRouter from './routes/servers.js';
+import projectsRouter from './routes/projects.js';
+import marketplaceRouter from './routes/marketplace.js';
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/api/servers', serversRouter);
+app.use('/api/projects', projectsRouter);
+app.use('/api/marketplace', marketplaceRouter);
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ error: err.message });
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 MCP Manager API running on http://localhost:${PORT}`);
+});

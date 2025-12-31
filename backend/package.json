@@ -1,0 +1,16 @@
+{
+  "name": "mcp-manager-backend",
+  "version": "1.0.0",
+  "description": "API backend for MCP Manager",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "fs-extra": "^11.2.0"
+  }
+}
