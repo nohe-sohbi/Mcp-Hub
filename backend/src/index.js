@@ -3,18 +3,23 @@ import cors from 'cors';
 import serversRouter from './routes/servers.js';
 import projectsRouter from './routes/projects.js';
 import marketplaceRouter from './routes/marketplace.js';
+import backupsRouter from './routes/backups.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
 app.use('/api/servers', serversRouter);
 app.use('/api/projects', projectsRouter);
 app.use('/api/marketplace', marketplaceRouter);
+app.use('/api/backups', backupsRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
