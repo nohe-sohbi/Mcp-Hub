@@ -1,0 +1,29 @@
+services:
+  backend:
+    build: ./backend
+    container_name: mcp-manager-backend-dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - ~/.claude:/root/.claude
+      - ~/.claude.json:/root/.claude.json
+      - ./backend/src:/app/src
+    command: node --watch src/index.js
+    environment:
+      - NODE_ENV=development
+      - FRONTEND_URL=http://localhost:5173
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: mcp-manager-frontend-dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+    environment:
+      - VITE_API_URL=http://localhost:3001
+    depends_on:
+      - backend
