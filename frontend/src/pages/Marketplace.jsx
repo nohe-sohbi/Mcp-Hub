@@ -1,21 +1,32 @@
 import { useState, useEffect } from 'react';
-import { Download, Terminal, Globe, Radio, Check, ExternalLink } from 'lucide-react';
-import { getMarketplace, getProjects, installTemplate } from '../services/api';
+import { Download, Terminal, Globe, Radio, Trash2 } from 'lucide-react';
+import { getMarketplace, getProjects, getServers, installTemplate, deleteServer } from '../services/api';
 
 function Marketplace() {
     const [templates, setTemplates] = useState([]);
     const [projects, setProjects] = useState([]);
+    const [installedServers, setInstalledServers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [installing, setInstalling] = useState(null);
-    const [installed, setInstalled] = useState([]);
+    const [uninstalling, setUninstalling] = useState(null);
     const [selectedScope, setSelectedScope] = useState('global');
     const [selectedProject, setSelectedProject] = useState('');
 
+    // Normalize name: "Sequential Thinking" -> "sequentialthinking"
+    const normalize = (name) => name?.toLowerCase().replace(/[-\s_]/g, '') || '';
+
+    // Find installed server by template id
+    const findInstalledServer = (templateId) => {
+        const normalizedTemplateId = normalize(templateId);
+        return installedServers.find(s => normalize(s.name) === normalizedTemplateId);
+    };
+
     useEffect(() => {
-        Promise.all([getMarketplace(), getProjects()])
-            .then(([templatesData, projectsData]) => {
+        Promise.all([getMarketplace(), getProjects(), getServers()])
+            .then(([templatesData, projectsData, serversData]) => {
                 setTemplates(templatesData);
                 setProjects(projectsData);
+                setInstalledServers(serversData);
             })
             .catch(console.error)
             .finally(() => setLoading(false));
@@ -24,16 +35,37 @@ function Marketplace() {
     const handleInstall = async (template) => {
         setInstalling(template.id);
         try {
-            await installTemplate({
+            const result = await installTemplate({
                 templateId: template.id,
                 scope: selectedScope,
                 scopePath: selectedScope === 'project' ? selectedProject : null
             });
-            setInstalled([...installed, template.id]);
+            // Add to installed servers list
+            setInstalledServers(prev => [...prev, {
+                id: `${selectedScope}:${result.serverName}`,
+                name: result.serverName,
+                scope: selectedScope
+            }]);
         } catch (error) {
             console.error('Failed to install:', error);
         } finally {
             setInstalling(null);
+        }
+    };
+
+    const handleUninstall = async (template) => {
+        const server = findInstalledServer(template.id);
+        if (!server) return;
+
+        setUninstalling(template.id);
+        try {
+            await deleteServer(server.id);
+            // Remove from installed servers list
+            setInstalledServers(prev => prev.filter(s => s.id !== server.id));
+        } catch (error) {
+            console.error('Failed to uninstall:', error);
+        } finally {
+            setUninstalling(null);
         }
     };
 
@@ -49,7 +81,6 @@ function Marketplace() {
         return 'http';
     };
 
-    // Group by category
     const categories = templates.reduce((acc, t) => {
         const cat = t.category || 'other';
         if (!acc[cat]) acc[cat] = [];
@@ -75,19 +106,16 @@ function Marketplace() {
 
     return (
         <div>
-            {/* Header */}
             <section className="section">
                 <div className="section-header">
                     <p className="section-subtitle">Discover</p>
                     <h1 className="section-title">Marketplace</h1>
                 </div>
-
                 <p className="text-lg text-muted" style={{ maxWidth: '600px' }}>
                     Pre-configured MCP servers ready to install. Choose a scope and click install.
                 </p>
             </section>
 
-            {/* Scope selector */}
             <section className="mb-xl">
                 <div className="card" style={{ maxWidth: '500px' }}>
                     <h3 className="text-xs text-muted mb-md">Installation Scope</h3>
@@ -133,7 +161,6 @@ function Marketplace() {
                 </div>
             </section>
 
-            {/* Templates by category */}
             {Object.entries(categories).map(([category, tmplts]) => (
                 <section key={category} className="section">
                     <h2 className="heading-md font-serif mb-lg">
@@ -146,8 +173,9 @@ function Marketplace() {
                         gap: 'var(--space-lg)'
                     }}>
                         {tmplts.map(template => {
-                            const isInstalled = installed.includes(template.id);
+                            const isInstalled = !!findInstalledServer(template.id);
                             const isInstalling = installing === template.id;
+                            const isUninstalling = uninstalling === template.id;
                             const config = template.config?.[Object.keys(template.config)[0]] || template.config;
 
                             return (
@@ -169,7 +197,6 @@ function Marketplace() {
                                             <p className="mb-md">{template.description}</p>
                                         )}
 
-                                        {/* Show env vars needed */}
                                         {config?.env && Object.keys(config.env).length > 0 && (
                                             <div className="mt-md">
                                                 <span className="text-xs text-muted">Requires:</span>
@@ -189,25 +216,37 @@ function Marketplace() {
                                     </div>
 
                                     <div className="card-actions">
-                                        <button
-                                            className={`btn ${isInstalled ? 'btn-secondary' : 'btn-accent'}`}
-                                            onClick={() => handleInstall(template)}
-                                            disabled={isInstalling || isInstalled || (selectedScope === 'project' && !selectedProject)}
-                                        >
-                                            {isInstalling ? (
-                                                <div className="loading-spinner" style={{ width: 14, height: 14 }} />
-                                            ) : isInstalled ? (
-                                                <>
-                                                    <Check size={14} />
-                                                    Installed
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Download size={14} />
-                                                    Install
-                                                </>
-                                            )}
-                                        </button>
+                                        {isInstalled ? (
+                                            <button
+                                                className="btn btn-secondary"
+                                                onClick={() => handleUninstall(template)}
+                                                disabled={isUninstalling}
+                                            >
+                                                {isUninstalling ? (
+                                                    <div className="loading-spinner" style={{ width: 14, height: 14 }} />
+                                                ) : (
+                                                    <>
+                                                        <Trash2 size={14} />
+                                                        Uninstall
+                                                    </>
+                                                )}
+                                            </button>
+                                        ) : (
+                                            <button
+                                                className="btn btn-accent"
+                                                onClick={() => handleInstall(template)}
+                                                disabled={isInstalling || (selectedScope === 'project' && !selectedProject)}
+                                            >
+                                                {isInstalling ? (
+                                                    <div className="loading-spinner" style={{ width: 14, height: 14 }} />
+                                                ) : (
+                                                    <>
+                                                        <Download size={14} />
+                                                        Install
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             );
