@@ -23,7 +23,8 @@ services:
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.js:/app/vite.config.js
     environment:
-      - VITE_API_URL=http://localhost:3001
+      - VITE_API_URL=http://backend:3001
     depends_on:
       - backend
