@@ -1,6 +1,21 @@
+import os from 'os';
 import ClaudeCodeProvider from './ClaudeCodeProvider.js';
 import ClaudeDesktopProvider from './ClaudeDesktopProvider.js';
 import OpenCodeProvider from './OpenCodeProvider.js';
+
+/**
+ * Humanize a file path for display (replace home directory with ~)
+ * @param {string} filePath - The path to humanize
+ * @returns {string}
+ */
+export function humanizePath(filePath) {
+    if (!filePath) return filePath;
+    const home = os.homedir();
+    if (filePath.startsWith(home)) {
+        return '~' + filePath.slice(home.length);
+    }
+    return filePath;
+}
 
 /**
  * Provider Registry
@@ -84,7 +99,7 @@ export async function getProvidersInfo(activeProviderIds = [], defaultProviderId
             active: activeProviderIds.includes(provider.id),
             isDefault: provider.id === defaultProviderId,
             supportsProjects: provider.supportsProjects(),
-            globalConfigPath: provider.globalConfigPath,
+            globalConfigPath: humanizePath(provider.globalConfigPath),
             projectConfigPath: provider.projectConfigPath
         });
     }

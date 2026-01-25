@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getProvidersInfo, getProvider } from '../providers/index.js';
+import { getProvidersInfo, getProvider, humanizePath } from '../providers/index.js';
 import {
     getManagerConfig,
     saveManagerConfig,
@@ -209,7 +209,7 @@ router.get('/:id', async (req, res, next) => {
             active: config.activeProviders.includes(provider.id),
             isDefault: config.defaultProvider === provider.id,
             supportsProjects: provider.supportsProjects(),
-            globalConfigPath: provider.globalConfigPath,
+            globalConfigPath: humanizePath(provider.globalConfigPath),
             projectConfigPath: provider.projectConfigPath
         });
     } catch (error) {
