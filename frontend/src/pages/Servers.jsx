@@ -1,22 +1,26 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit3, ToggleLeft, ToggleRight, Terminal, Globe, Radio, FolderOpen } from 'lucide-react';
-import { getServers, getProjects, addServer, deleteServer, toggleServer } from '../services/api';
+import { Plus, Trash2, Edit3, Terminal, Globe, Radio, FolderOpen } from 'lucide-react';
+import { getServers, getProjects, getProviders, addServer, deleteServer, toggleServer } from '../services/api';
 import ServerModal from '../components/ServerModal';
+import ProviderBadge from '../components/ProviderBadge';
 
 function Servers() {
     const [servers, setServers] = useState([]);
     const [projects, setProjects] = useState([]);
+    const [providers, setProviders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
+    const [providerFilter, setProviderFilter] = useState('all');
     const [showModal, setShowModal] = useState(false);
     const [editingServer, setEditingServer] = useState(null);
 
     const loadData = () => {
         setLoading(true);
-        Promise.all([getServers(), getProjects()])
-            .then(([serversData, projectsData]) => {
+        Promise.all([getServers(), getProjects(), getProviders()])
+            .then(([serversData, projectsData, providersData]) => {
                 setServers(serversData);
                 setProjects(projectsData);
+                setProviders(providersData.filter(p => p.active));
             })
             .catch(console.error)
             .finally(() => setLoading(false));
@@ -72,6 +76,9 @@ function Servers() {
     };
 
     const filteredServers = servers.filter(s => {
+        // Provider filter
+        if (providerFilter !== 'all' && s.provider !== providerFilter) return false;
+        // Scope/status filter
         if (filter === 'all') return true;
         if (filter === 'global') return s.scope === 'global';
         if (filter === 'project') return s.scope !== 'global';
@@ -119,16 +126,34 @@ function Servers() {
 
             {/* Filters */}
             <section className="mb-xl">
-                <div className="flex gap-sm">
-                    {['all', 'global', 'project', 'active', 'inactive'].map(f => (
-                        <button
-                            key={f}
-                            className={`btn ${filter === f ? 'btn-primary' : 'btn-ghost'}`}
-                            onClick={() => setFilter(f)}
-                        >
-                            {f.charAt(0).toUpperCase() + f.slice(1)}
-                        </button>
-                    ))}
+                <div className="flex gap-md" style={{ flexWrap: 'wrap' }}>
+                    <div className="flex gap-sm">
+                        {['all', 'global', 'project', 'active', 'inactive'].map(f => (
+                            <button
+                                key={f}
+                                className={`btn ${filter === f ? 'btn-primary' : 'btn-ghost'}`}
+                                onClick={() => setFilter(f)}
+                            >
+                                {f.charAt(0).toUpperCase() + f.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                    {providers.length > 1 && (
+                        <div className="flex gap-sm items-center">
+                            <span className="text-muted text-sm">Provider:</span>
+                            <select
+                                className="form-select"
+                                value={providerFilter}
+                                onChange={(e) => setProviderFilter(e.target.value)}
+                                style={{ minWidth: '150px' }}
+                            >
+                                <option value="all">All providers</option>
+                                {providers.map(p => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -159,11 +184,18 @@ function Servers() {
                                 <div className="card-header">
                                     <div>
                                         <div className="card-title">{server.name}</div>
-                                        <div className="flex items-center gap-sm mt-sm">
+                                        <div className="flex items-center gap-sm mt-sm" style={{ flexWrap: 'wrap' }}>
                                             <span className="server-type">
                                                 {getTypeIcon(server.type)}
                                                 {server.type}
                                             </span>
+                                            {server.provider && (
+                                                <ProviderBadge
+                                                    providerId={server.provider}
+                                                    providerName={server.providerName}
+                                                    small
+                                                />
+                                            )}
                                         </div>
                                     </div>
                                     <label className="toggle">

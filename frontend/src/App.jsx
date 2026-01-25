@@ -5,7 +5,7 @@ import {
     Server,
     FolderOpen,
     Store,
-    Settings,
+    Settings as SettingsIcon,
     Menu,
     X
 } from 'lucide-react';
@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard';
 import Servers from './pages/Servers';
 import Projects from './pages/Projects';
 import Marketplace from './pages/Marketplace';
+import Settings from './pages/Settings';
 import { healthCheck } from './services/api';
 
 function App() {
@@ -81,6 +82,12 @@ function App() {
                                 <span>Marketplace</span>
                             </NavLink>
                         </li>
+                        <li className="nav-item">
+                            <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                                <SettingsIcon />
+                                <span>Settings</span>
+                            </NavLink>
+                        </li>
                     </ul>
                 </nav>
 
@@ -113,6 +120,7 @@ function App() {
                     <Route path="/servers" element={<Servers />} />
                     <Route path="/projects" element={<Projects />} />
                     <Route path="/marketplace" element={<Marketplace />} />
+                    <Route path="/settings" element={<Settings />} />
                 </Routes>
             </main>
         </div>

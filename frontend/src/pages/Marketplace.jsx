@@ -35,17 +35,14 @@ function Marketplace() {
     const handleInstall = async (template) => {
         setInstalling(template.id);
         try {
-            const result = await installTemplate({
+            await installTemplate({
                 templateId: template.id,
                 scope: selectedScope,
                 scopePath: selectedScope === 'project' ? selectedProject : null
             });
-            // Add to installed servers list
-            setInstalledServers(prev => [...prev, {
-                id: `${selectedScope}:${result.serverName}`,
-                name: result.serverName,
-                scope: selectedScope
-            }]);
+            // Reload servers to get updated list with correct IDs
+            const serversData = await getServers();
+            setInstalledServers(serversData);
         } catch (error) {
             console.error('Failed to install:', error);
         } finally {
@@ -60,8 +57,9 @@ function Marketplace() {
         setUninstalling(template.id);
         try {
             await deleteServer(server.id);
-            // Remove from installed servers list
-            setInstalledServers(prev => prev.filter(s => s.id !== server.id));
+            // Reload servers to get updated list
+            const serversData = await getServers();
+            setInstalledServers(serversData);
         } catch (error) {
             console.error('Failed to uninstall:', error);
         } finally {
