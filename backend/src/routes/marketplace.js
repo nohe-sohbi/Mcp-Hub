@@ -1,7 +1,11 @@
 import { Router } from 'express';
-import { getMarketplaceTemplates, addServer } from '../services/claudeConfig.js';
+import { getProvider, addServerToProviders } from '../providers/index.js';
+import { getManagerConfig } from '../services/providerConfig.js';
 
 const router = Router();
+
+// Note: getMarketplaceTemplates is kept for discovering templates from plugins
+// For now we just use curated templates
 
 // Curated popular templates (in addition to discovered ones)
 const CURATED_TEMPLATES = [
@@ -86,19 +90,9 @@ const CURATED_TEMPLATES = [
 // GET /api/marketplace - List all available templates
 router.get('/', async (req, res, next) => {
     try {
-        const discoveredTemplates = await getMarketplaceTemplates();
-
-        // Merge curated with discovered, avoiding duplicates
-        const allTemplates = [...CURATED_TEMPLATES];
-
-        for (const template of discoveredTemplates) {
-            const exists = allTemplates.some(t => t.id === template.id);
-            if (!exists) {
-                allTemplates.push(template);
-            }
-        }
-
-        res.json(allTemplates);
+        // Return curated templates
+        // TODO: Add discovered templates from plugins later
+        res.json(CURATED_TEMPLATES);
     } catch (error) {
         next(error);
     }
@@ -107,12 +101,10 @@ router.get('/', async (req, res, next) => {
 // POST /api/marketplace/install - Install a template
 router.post('/install', async (req, res, next) => {
     try {
-        const { templateId, scope, scopePath, customConfig } = req.body;
+        const { templateId, scope, scopePath, customConfig, providers } = req.body;
 
         // Find template
-        const discoveredTemplates = await getMarketplaceTemplates();
-        let template = [...CURATED_TEMPLATES, ...discoveredTemplates]
-            .find(t => t.id === templateId);
+        let template = CURATED_TEMPLATES.find(t => t.id === templateId);
 
         if (!template) {
             return res.status(404).json({ error: 'Template not found' });
@@ -134,12 +126,50 @@ router.post('/install', async (req, res, next) => {
         // Merge with custom config
         const finalConfig = { ...serverConfig, ...customConfig };
 
-        await addServer(serverName, finalConfig, scope || 'global', scopePath);
+        // Determine target providers
+        let targetProviders;
+        if (providers && providers.length > 0) {
+            // Validate provider IDs
+            for (const id of providers) {
+                if (!getProvider(id)) {
+                    return res.status(400).json({ error: `Unknown provider: ${id}` });
+                }
+            }
+            targetProviders = providers;
+        } else {
+            // Use default provider or all active if syncOnInstall is enabled
+            const managerConfig = await getManagerConfig();
+            if (managerConfig.syncOnInstall) {
+                targetProviders = managerConfig.activeProviders;
+            } else {
+                targetProviders = [managerConfig.defaultProvider];
+            }
+        }
+
+        const results = await addServerToProviders(
+            serverName,
+            finalConfig,
+            scope || 'global',
+            scopePath,
+            targetProviders
+        );
+
+        // Check if any succeeded
+        const successes = results.filter(r => r.success);
+        const failures = results.filter(r => !r.success);
+
+        if (successes.length === 0) {
+            return res.status(500).json({
+                error: 'Failed to install template to any provider',
+                details: failures
+            });
+        }
 
         res.status(201).json({
             success: true,
-            message: `Installed '${serverName}' from marketplace`,
-            serverName
+            message: `Installed '${serverName}' to ${successes.length} provider(s)`,
+            serverName,
+            results
         });
     } catch (error) {
         next(error);

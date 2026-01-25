@@ -4,6 +4,7 @@ import serversRouter from './routes/servers.js';
 import projectsRouter from './routes/projects.js';
 import marketplaceRouter from './routes/marketplace.js';
 import backupsRouter from './routes/backups.js';
+import providersRouter from './routes/providers.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,6 +17,7 @@ app.use(cors({
 app.use(express.json());
 
 // Routes
+app.use('/api/providers', providersRouter);
 app.use('/api/servers', serversRouter);
 app.use('/api/projects', projectsRouter);
 app.use('/api/marketplace', marketplaceRouter);
