@@ -1,22 +1,9 @@
 services:
-  backend:
-    build: ./backend
-    container_name: mcp-manager-backend
-    restart: unless-stopped
-    expose:
-      - "3001"
-    volumes:
-      - ~/.claude:/root/.claude
-      - ~/.claude.json:/root/.claude.json:ro
-    environment:
-      - NODE_ENV=production
-      - FRONTEND_URL=http://frontend:3000
-
   frontend:
     build: ./frontend
     container_name: mcp-manager-frontend
     restart: unless-stopped
     expose:
-      - "3000"
-    depends_on:
-      - backend
+      - "80"
+    environment:
+      - NODE_ENV=production
