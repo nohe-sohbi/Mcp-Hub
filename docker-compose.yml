@@ -10,13 +10,13 @@ services:
       - ~/.claude.json:/root/.claude.json:ro
     environment:
       - NODE_ENV=production
-      - FRONTEND_URL=http://frontend:80
+      - FRONTEND_URL=http://frontend:3000
 
   frontend:
     build: ./frontend
     container_name: mcp-manager-frontend
     restart: unless-stopped
     expose:
-      - "80"
+      - "3000"
     depends_on:
       - backend
