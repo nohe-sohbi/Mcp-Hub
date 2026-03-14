@@ -95,6 +95,11 @@ export async function listBackups() {
  * Restore a backup
  */
 export async function restoreBackup(backupId) {
+    // SECURITY: Prevent path traversal
+    if (typeof backupId !== 'string' || backupId.includes('/') || backupId.includes('\\') || backupId.includes('..')) {
+        throw new Error('Invalid backup ID');
+    }
+
     const backupPath = path.join(BACKUPS_DIR, backupId);
 
     if (!await fs.pathExists(backupPath)) {
@@ -123,6 +128,11 @@ export async function restoreBackup(backupId) {
  * Delete a backup
  */
 export async function deleteBackup(backupId) {
+    // SECURITY: Prevent path traversal
+    if (typeof backupId !== 'string' || backupId.includes('/') || backupId.includes('\\') || backupId.includes('..')) {
+        throw new Error('Invalid backup ID');
+    }
+
     const backupPath = path.join(BACKUPS_DIR, backupId);
 
     if (!await fs.pathExists(backupPath)) {
