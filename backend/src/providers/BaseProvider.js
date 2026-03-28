@@ -46,6 +46,11 @@ export default class BaseProvider {
     async getProjectConfig(projectPath) {
         if (!this.projectConfigPath) return null;
 
+        // SECURITY: Prevent path traversal
+        if (!path.isAbsolute(projectPath) || projectPath.includes('..')) {
+            throw new Error('Invalid project path: Must be absolute and cannot contain traversal sequences');
+        }
+
         const configPath = path.join(projectPath, this.projectConfigPath);
         try {
             if (await fs.pathExists(configPath)) {
@@ -66,6 +71,11 @@ export default class BaseProvider {
     async saveProjectConfig(projectPath, config) {
         if (!this.projectConfigPath) {
             throw new Error(`${this.name} does not support project-level configuration`);
+        }
+
+        // SECURITY: Prevent path traversal
+        if (!path.isAbsolute(projectPath) || projectPath.includes('..')) {
+            throw new Error('Invalid project path: Must be absolute and cannot contain traversal sequences');
         }
 
         const configPath = path.join(projectPath, this.projectConfigPath);
