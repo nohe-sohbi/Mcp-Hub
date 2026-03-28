@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import path from 'path';
 import {
     getProvider,
     getServersFromProviders,
@@ -40,11 +41,19 @@ function parseServerId(id) {
         if (parts.length < 4) {
             throw new Error(`Invalid project server ID format: ${id}`);
         }
+
+        const scopePath = decodeURIComponent(parts[2]);
+
+        // SECURITY: Prevent path traversal
+        if (!path.isAbsolute(scopePath) || scopePath.includes('..')) {
+            throw new Error('Invalid project path: Must be absolute and cannot contain traversal sequences');
+        }
+
         return {
             providerId,
             scope,
-            scopePath: parts[2],
-            serverName: parts.slice(3).join(':')
+            scopePath,
+            serverName: decodeURIComponent(parts.slice(3).join(':'))
         };
     }
 }
@@ -97,6 +106,11 @@ router.post('/', async (req, res, next) => {
 
         if (scope === 'project' && !scopePath) {
             return res.status(400).json({ error: 'scopePath is required for project scope' });
+        }
+
+        // SECURITY: Prevent path traversal
+        if (scope === 'project' && (!path.isAbsolute(scopePath) || scopePath.includes('..'))) {
+            return res.status(400).json({ error: 'Invalid project path: Must be absolute and cannot contain traversal sequences' });
         }
 
         // Determine target providers
