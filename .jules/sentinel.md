@@ -7,3 +7,8 @@
 **Vulnerability:** Path traversal possible through `scopePath` parameter and ID components in MCP servers route (`backend/src/routes/servers.js`) and base provider class (`backend/src/providers/BaseProvider.js`).
 **Learning:** External user inputs used to reconstruct paths, especially URLs decoding, must be validated as absolute and free of traversal sequences (`..`) prior to path joining operations or OS system calls.
 **Prevention:** Strictly enforce absolute paths (`path.isAbsolute`) and explicitly reject strings containing traversal sequences (`includes('..')`) whenever generating filesystem paths from external IDs. Ensure URL-encoded segments are decoded properly prior to validation.
+
+## 2026-04-04 - Missing Security Headers in Express Application
+**Vulnerability:** The Express backend was missing standard security headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`) and exposed `X-Powered-By`, making it potentially susceptible to MIME sniffing, Clickjacking, and cross-site scripting attacks, while leaking technology details.
+**Learning:** By default, Express does not include many essential security headers and includes the `X-Powered-By` header which leaks the server framework.
+**Prevention:** Always implement a security middleware (or use libraries like `helmet`) to set standard security headers (`nosniff`, `DENY`, `1; mode=block`) and disable `x-powered-by` to implement defense in depth.
