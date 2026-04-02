@@ -12,3 +12,8 @@
 **Vulnerability:** The Express backend was missing standard security headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`) and exposed `X-Powered-By`, making it potentially susceptible to MIME sniffing, Clickjacking, and cross-site scripting attacks, while leaking technology details.
 **Learning:** By default, Express does not include many essential security headers and includes the `X-Powered-By` header which leaks the server framework.
 **Prevention:** Always implement a security middleware (or use libraries like `helmet`) to set standard security headers (`nosniff`, `DENY`, `1; mode=block`) and disable `x-powered-by` to implement defense in depth.
+
+## 2024-05-18 - Prototype Pollution via Configuration Objects
+**Vulnerability:** The application's server configuration updates (like `servers[name] = config`) in `backend/src/routes/servers.js` and `backend/src/routes/marketplace.js` were vulnerable to Prototype Pollution. An attacker could supply `__proto__`, `constructor`, or `prototype` as the server name, modifying global Object properties and potentially leading to application instability or other exploit paths.
+**Learning:** Even if data is parsed from JSON, if arbitrary user-controlled keys are used to assign properties on objects, especially config objects that might be merged or assigned globally, Prototype Pollution can occur. `Object.assign` or spread syntax into objects mapped by a dynamic key can trigger this when the key is `__proto__`.
+**Prevention:** Always validate user-provided keys used in object property assignments against reserved keywords (`__proto__`, `constructor`, `prototype`), or use `Map` objects or `Object.create(null)` for dictionary structures that accept arbitrary keys.

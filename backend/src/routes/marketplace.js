@@ -123,6 +123,15 @@ router.post('/install', async (req, res, next) => {
             }
         }
 
+        if (typeof serverName !== 'string') {
+            return res.status(400).json({ error: 'Server name must be a string' });
+        }
+
+        // SECURITY: Prevent prototype pollution
+        if (serverName === '__proto__' || serverName === 'constructor' || serverName === 'prototype') {
+            return res.status(400).json({ error: 'Invalid server name: Reserved keyword' });
+        }
+
         // Merge with custom config
         const finalConfig = { ...serverConfig, ...customConfig };
 

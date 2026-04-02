@@ -30,11 +30,18 @@ function parseServerId(id) {
     const scope = parts[1];
 
     if (scope === 'global') {
+        const serverName = parts.slice(2).join(':');  // Handle server names with colons
+
+        // SECURITY: Prevent prototype pollution
+        if (serverName === '__proto__' || serverName === 'constructor' || serverName === 'prototype') {
+            throw new Error('Invalid server name: Reserved keyword');
+        }
+
         return {
             providerId,
             scope,
             scopePath: null,
-            serverName: parts.slice(2).join(':')  // Handle server names with colons
+            serverName
         };
     } else {
         // Project scope: providerId:project:projectPath:serverName
@@ -49,11 +56,18 @@ function parseServerId(id) {
             throw new Error('Invalid project path: Must be absolute and cannot contain traversal sequences');
         }
 
+        const serverName = decodeURIComponent(parts.slice(3).join(':'));
+
+        // SECURITY: Prevent prototype pollution
+        if (serverName === '__proto__' || serverName === 'constructor' || serverName === 'prototype') {
+            throw new Error('Invalid server name: Reserved keyword');
+        }
+
         return {
             providerId,
             scope,
             scopePath,
-            serverName: decodeURIComponent(parts.slice(3).join(':'))
+            serverName
         };
     }
 }
@@ -102,6 +116,15 @@ router.post('/', async (req, res, next) => {
 
         if (!name || !config) {
             return res.status(400).json({ error: 'Name and config are required' });
+        }
+
+        if (typeof name !== 'string') {
+            return res.status(400).json({ error: 'Server name must be a string' });
+        }
+
+        // SECURITY: Prevent prototype pollution
+        if (name === '__proto__' || name === 'constructor' || name === 'prototype') {
+            return res.status(400).json({ error: 'Invalid server name: Reserved keyword' });
         }
 
         if (scope === 'project' && !scopePath) {
