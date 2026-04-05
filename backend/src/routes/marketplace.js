@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import path from 'path';
 import { getProvider, addServerToProviders } from '../providers/index.js';
 import { getManagerConfig } from '../services/providerConfig.js';
 
@@ -108,6 +109,15 @@ router.post('/install', async (req, res, next) => {
 
         if (!template) {
             return res.status(404).json({ error: 'Template not found' });
+        }
+
+        if (scope === 'project' && !scopePath) {
+            return res.status(400).json({ error: 'scopePath is required for project scope' });
+        }
+
+        // SECURITY: Prevent path traversal
+        if (scope === 'project' && (!path.isAbsolute(scopePath) || scopePath.includes('..'))) {
+            return res.status(400).json({ error: 'Invalid project path: Must be absolute and cannot contain traversal sequences' });
         }
 
         // Get the server config (handle both formats)
