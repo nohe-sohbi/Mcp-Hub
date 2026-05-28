@@ -27,3 +27,8 @@
 **Vulnerability:** The application was vulnerable to Denial of Service (DoS) attacks due to unbounded JSON body payloads and potentially leaked sensitive internal paths or stack details through raw `err.message` responses on unhandled exceptions in the global error handler.
 **Learning:** Default `express.json()` middleware does not enforce payload limits, creating vectors for payload-based DoS. Global error handlers should never return raw error messages to the client.
 **Prevention:** Always set an explicit `limit` (e.g., `1mb`) when using body parsers and return a generic 'Internal Server Error' message for 500 status codes, while maintaining internal logging for observability.
+
+## 2024-05-18 - Prototype Pollution via Configuration Objects
+**Vulnerability:** The application's server configuration updates (like `servers[name] = config`) in `backend/src/routes/servers.js` and `backend/src/routes/marketplace.js` were vulnerable to Prototype Pollution. An attacker could supply `__proto__`, `constructor`, or `prototype` as the server name, modifying global Object properties and potentially leading to application instability or other exploit paths.
+**Learning:** Even if data is parsed from JSON, if arbitrary user-controlled keys are used to assign properties on objects, especially config objects that might be merged or assigned globally, Prototype Pollution can occur. `Object.assign` or spread syntax into objects mapped by a dynamic key can trigger this when the key is `__proto__`.
+**Prevention:** Always validate user-provided keys used in object property assignments against reserved keywords (`__proto__`, `constructor`, `prototype`), or use `Map` objects or `Object.create(null)` for dictionary structures that accept arbitrary keys.
