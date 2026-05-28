@@ -22,17 +22,17 @@ export async function createBackup(filePath) {
     await fs.ensureDir(BACKUPS_DIR);
 
     // Generate timestamped backup filename
-    const fileName = path.basename(filePath);
-    const dirName = path.dirname(filePath).replace(/[\/\\]/g, '_').replace(/^_/, '');
+    // SECURITY: Prevent path collision and corruption via safe URL encoding
+    const encodedPath = encodeURIComponent(filePath);
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupFileName = `${dirName}_${fileName}_${timestamp}.bak`;
+    const backupFileName = `${encodedPath}_${timestamp}.bak`;
     const backupPath = path.join(BACKUPS_DIR, backupFileName);
 
     // Create the backup
     await fs.copy(filePath, backupPath);
 
     // Rotate old backups (keep only MAX_BACKUPS_PER_FILE)
-    await rotateBackups(fileName, dirName);
+    await rotateBackups(encodedPath);
 
     return backupPath;
 }
@@ -40,8 +40,8 @@ export async function createBackup(filePath) {
 /**
  * Keep only the most recent backups for a file
  */
-async function rotateBackups(fileName, dirName) {
-    const pattern = `${dirName}_${fileName}_`;
+async function rotateBackups(encodedPath) {
+    const pattern = `${encodedPath}_`;
     const allFiles = await fs.readdir(BACKUPS_DIR);
     const matchingBackups = allFiles
         .filter(f => f.startsWith(pattern) && f.endsWith('.bak'))
@@ -71,16 +71,31 @@ export async function listBackups() {
         const filePath = path.join(BACKUPS_DIR, file);
         const stats = await fs.stat(filePath);
 
-        // Parse backup filename: dirPath_fileName_timestamp.bak
+        // Parse backup filename
         const parts = file.replace('.bak', '').split('_');
         const timestamp = parts.pop();
-        const fileName = parts.pop();
-        const dirPath = parts.join('/').replace(/^/, '/');
+
+        let originalPath, fileName;
+        if (file.includes('%')) {
+            // New format: encodedPath_timestamp.bak
+            try {
+                originalPath = decodeURIComponent(parts.join('_'));
+            } catch (e) {
+                // Fallback if % was in legacy filename but not valid URI encoded
+                originalPath = path.join(parts.join('/').replace(/^/, '/'), parts.pop());
+            }
+            fileName = path.basename(originalPath);
+        } else {
+            // Legacy format: dirPath_fileName_timestamp.bak
+            fileName = parts.pop();
+            const dirPath = parts.join('/').replace(/^/, '/');
+            originalPath = path.join(dirPath, fileName);
+        }
 
         backups.push({
             id: file,
             fileName,
-            originalPath: path.join(dirPath, fileName),
+            originalPath,
             backupPath: filePath,
             timestamp: timestamp.replace(/-/g, ':').replace('T', ' ').slice(0, 19),
             size: stats.size,
@@ -109,9 +124,22 @@ export async function restoreBackup(backupId) {
     // Parse original path from backup filename
     const parts = backupId.replace('.bak', '').split('_');
     parts.pop(); // Remove timestamp
-    const fileName = parts.pop();
-    const dirPath = parts.join('/').replace(/^/, '/');
-    const originalPath = path.join(dirPath, fileName);
+
+    let originalPath;
+    if (backupId.includes('%')) {
+        try {
+            originalPath = decodeURIComponent(parts.join('_'));
+        } catch (e) {
+            // Fallback
+            const fileName = parts.pop();
+            const dirPath = parts.join('/').replace(/^/, '/');
+            originalPath = path.join(dirPath, fileName);
+        }
+    } else {
+        const fileName = parts.pop();
+        const dirPath = parts.join('/').replace(/^/, '/');
+        originalPath = path.join(dirPath, fileName);
+    }
 
     // Create a backup of current state before restoring
     if (await fs.pathExists(originalPath)) {
