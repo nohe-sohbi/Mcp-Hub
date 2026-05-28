@@ -22,3 +22,8 @@
 **Vulnerability:** The backup mechanism in `backend/src/services/claudeConfig.js` used a destructive path serialization approach (replacing path separators with underscores `_`) to generate backup filenames. This could lead to path collisions and prevents accurate reconstruction/deserialization of original file paths if the path originally contained an underscore.
 **Learning:** Reconstructing file paths by replacing serialized characters (`_` back to `/`) is prone to errors and corruption. Destructive serialization methods that lose information should never be used when accurate deserialization is required.
 **Prevention:** Always use safe encoding methods like `encodeURIComponent` to securely serialize full paths into filenames without losing information, ensuring accurate deserialization with `decodeURIComponent`.
+
+## 2026-05-08 - Prevent DoS via Payload Limit and Information Leakage via Error Handler
+**Vulnerability:** The application was vulnerable to Denial of Service (DoS) attacks due to unbounded JSON body payloads and potentially leaked sensitive internal paths or stack details through raw `err.message` responses on unhandled exceptions in the global error handler.
+**Learning:** Default `express.json()` middleware does not enforce payload limits, creating vectors for payload-based DoS. Global error handlers should never return raw error messages to the client.
+**Prevention:** Always set an explicit `limit` (e.g., `1mb`) when using body parsers and return a generic 'Internal Server Error' message for 500 status codes, while maintaining internal logging for observability.
