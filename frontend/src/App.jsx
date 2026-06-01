@@ -55,6 +55,16 @@ function App() {
                 <div className="sidebar-logo">MCP Manager</div>
                 <div className="sidebar-tagline">Protocol Configuration</div>
 
+                <div
+                    className="sidebar-demo-notice"
+                    title="Environnement de démonstration : les données peuvent être réinitialisées à tout moment et certaines fonctionnalités sont limitées ou instables."
+                >
+                    <span className="badge badge-warning">Démo</span>
+                    <span className="sidebar-demo-text">
+                        Aperçu de démonstration — données non persistantes, certaines fonctionnalités sont limitées.
+                    </span>
+                </div>
+
                 <nav className="nav-section">
                     <div className="nav-label">Navigation</div>
                     <ul className="nav-list">
