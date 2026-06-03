@@ -238,7 +238,25 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-text-light);
   text-transform: uppercase;
   letter-spacing: 0.2em;
+  margin-bottom: var(--space-md);
+}
+
+.sidebar-demo-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
   margin-bottom: var(--space-2xl);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(196, 154, 61, 0.08);
+  border-left: 2px solid var(--color-warning);
+  border-radius: 2px;
+}
+
+.sidebar-demo-text {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-text-muted);
 }
 
 .nav-section {
@@ -931,4 +949,133 @@ h1, h2, h3, h4, h5, h6 {
   .editorial-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ===========================================================================
+   Demo onboarding tour ("visite guidée") + sidebar launcher
+   =========================================================================== */
+
+.sidebar-tour-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-accent-dark);
+  background: transparent;
+  border: 1px solid var(--color-warning);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.sidebar-tour-btn:hover {
+  background: var(--color-warning);
+  color: #fff;
+}
+
+.tour-root {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+}
+
+/* Spotlight: a transparent box whose massive shadow dims everything else. */
+.tour-spotlight {
+  position: fixed;
+  border-radius: 6px;
+  box-shadow: 0 0 0 9999px rgba(26, 26, 26, 0.62);
+  transition: top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease;
+  pointer-events: none;
+}
+
+.tour-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 26, 0.62);
+}
+
+.tour-card {
+  position: fixed;
+  width: min(340px, calc(100vw - 24px));
+  background: var(--color-bg);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  border-top: 3px solid var(--color-accent);
+  border-radius: 4px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  padding: var(--space-lg);
+}
+
+.tour-card--center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.tour-close {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  display: inline-flex;
+  padding: 4px;
+  color: var(--color-text-light);
+  background: transparent;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.tour-close:hover {
+  color: var(--color-text);
+  background: var(--color-bg-alt);
+}
+
+.tour-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  padding-right: var(--space-lg);
+}
+
+.tour-card-icon {
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.tour-card-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.tour-card-body {
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-md);
+}
+
+.tour-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.tour-progress {
+  font-size: var(--text-xs);
+  color: var(--color-text-light);
+  letter-spacing: 0.05em;
+}
+
+.tour-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
 }

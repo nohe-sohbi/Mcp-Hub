@@ -7,26 +7,54 @@ import {
     Store,
     Settings as SettingsIcon,
     Menu,
-    X
+    X,
+    Sparkles
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Servers from './pages/Servers';
 import Projects from './pages/Projects';
 import Marketplace from './pages/Marketplace';
 import Settings from './pages/Settings';
-import { healthCheck } from './services/api';
+import OnboardingTour from './components/OnboardingTour';
+import { healthCheck, isDemoMode } from './services/api';
+
+const TOUR_SEEN_KEY = 'mcp-demo-tour-seen-v1';
 
 function App() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [apiStatus, setApiStatus] = useState('checking');
+    const [tourOpen, setTourOpen] = useState(false);
     const location = useLocation();
 
     useEffect(() => {
-        // Check API health
+        // Check API health (transparently falls back to demo mode on failure)
         healthCheck()
-            .then(() => setApiStatus('connected'))
+            .then(() => setApiStatus(isDemoMode() ? 'demo' : 'connected'))
             .catch(() => setApiStatus('disconnected'));
     }, []);
+
+    // Auto-launch the guided tour on the very first visit.
+    useEffect(() => {
+        let seen = false;
+        try {
+            seen = window.localStorage.getItem(TOUR_SEEN_KEY) === '1';
+        } catch {
+            seen = false;
+        }
+        if (!seen) {
+            const timer = setTimeout(() => setTourOpen(true), 600);
+            return () => clearTimeout(timer);
+        }
+    }, []);
+
+    const closeTour = () => {
+        setTourOpen(false);
+        try {
+            window.localStorage.setItem(TOUR_SEEN_KEY, '1');
+        } catch {
+            // ignore
+        }
+    };
 
     // Close sidebar on route change (mobile)
     useEffect(() => {
@@ -55,35 +83,50 @@ function App() {
                 <div className="sidebar-logo">MCP Manager</div>
                 <div className="sidebar-tagline">Protocol Configuration</div>
 
+                <div
+                    className="sidebar-demo-notice"
+                    data-tour="demo-notice"
+                    title="Environnement de démonstration : les données sont fictives et stockées localement dans votre navigateur. Certaines fonctionnalités sont simulées."
+                >
+                    <span className="badge badge-warning">Démo</span>
+                    <span className="sidebar-demo-text">
+                        Aperçu de démonstration — données fictives (locales), certaines fonctionnalités sont simulées.
+                    </span>
+                    <button className="sidebar-tour-btn" onClick={() => setTourOpen(true)}>
+                        <Sparkles size={14} />
+                        Visite guidée
+                    </button>
+                </div>
+
                 <nav className="nav-section">
                     <div className="nav-label">Navigation</div>
                     <ul className="nav-list">
                         <li className="nav-item">
-                            <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                            <NavLink to="/" data-tour="nav-dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
                                 <LayoutDashboard />
                                 <span>Dashboard</span>
                             </NavLink>
                         </li>
                         <li className="nav-item">
-                            <NavLink to="/servers" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                            <NavLink to="/servers" data-tour="nav-servers" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
                                 <Server />
                                 <span>Servers</span>
                             </NavLink>
                         </li>
                         <li className="nav-item">
-                            <NavLink to="/projects" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                            <NavLink to="/projects" data-tour="nav-projects" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
                                 <FolderOpen />
                                 <span>Projects</span>
                             </NavLink>
                         </li>
                         <li className="nav-item">
-                            <NavLink to="/marketplace" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                            <NavLink to="/marketplace" data-tour="nav-marketplace" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
                                 <Store />
                                 <span>Marketplace</span>
                             </NavLink>
                         </li>
                         <li className="nav-item">
-                            <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                            <NavLink to="/settings" data-tour="nav-settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
                                 <SettingsIcon />
                                 <span>Settings</span>
                             </NavLink>
@@ -106,8 +149,9 @@ function App() {
                         />
                         <span className="text-sm text-muted">
                             {apiStatus === 'connected' ? 'API Connected' :
-                                apiStatus === 'disconnected' ? 'API Offline' :
-                                    'Checking...'}
+                                apiStatus === 'demo' ? 'Mode démo' :
+                                    apiStatus === 'disconnected' ? 'API Offline' :
+                                        'Checking...'}
                         </span>
                     </div>
                 </div>
@@ -123,6 +167,8 @@ function App() {
                     <Route path="/settings" element={<Settings />} />
                 </Routes>
             </main>
+
+            <OnboardingTour open={tourOpen} onClose={closeTour} />
         </div>
     );
 }
