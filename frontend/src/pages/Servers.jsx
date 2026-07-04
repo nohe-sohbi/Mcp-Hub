@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit3, Terminal, Globe, Radio, FolderOpen } from 'lucide-react';
-import { getServers, getProjects, getProviders, addServer, deleteServer, toggleServer } from '../services/api';
+import { getServers, getProjects, getProviders, addServer, updateServer, deleteServer, toggleServer } from '../services/api';
 import ServerModal from '../components/ServerModal';
 import ProviderBadge from '../components/ProviderBadge';
 
@@ -67,7 +67,11 @@ function Servers() {
 
     const handleModalSave = async (data) => {
         try {
-            await addServer(data);
+            if (editingServer) {
+                await updateServer(editingServer.id, data.config);
+            } else {
+                await addServer(data);
+            }
             loadData();
             handleModalClose();
         } catch (error) {
