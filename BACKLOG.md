@@ -47,15 +47,24 @@ providers) sont tous accessibles et fonctionnels une fois les P0 corrigés.
 
 ---
 
-## 🟢 Contenu à compléter / notes (hors périmètre du sprint)
+## 🟢 Contenu à compléter
 
-- [ ] **P2-2 · API Backups sans UI.** Le backend expose `GET/POST/DELETE /api/backups`
-  mais aucune page ne les consomme et `services/api.js` ne les expose même pas.
-  Construire une UI de backups serait **inventer du scope** (décision produit) →
-  laissé tel quel, signalé comme lacune.
+- [x] **P2-2 · [M] · API Backups sans UI.** Le backend exposait `GET/POST/DELETE
+  /api/backups` mais aucune page ne le consommait (et `services/api.js` ne
+  l'exposait pas). Ajouté : fonctions API + repli démo (`getBackups`,
+  `restoreBackup`, `deleteBackup`), handlers de démo avec données seed, et une
+  page **Backups** (liste / restaurer / supprimer) câblée dans la navigation, le
+  routing et la visite guidée. _(Débloqué après validation « Go ».)_
 
-- [ ] **P2-3 · `marketplace.js` TODO** « Add discovered templates from plugins later » :
-  templates dynamiques non implémentés, non bloquant (les templates curatés
-  suffisent au produit). Laissé en l'état.
-</content>
-</invoke>
+- [x] **P2-3 · [S] · `marketplace.js` TODO** « Add discovered templates from plugins
+  later ». Les routes marketplace (GET + install) fusionnent désormais les
+  templates curatés et ceux découverts dans les plugins Claude installés
+  (`getMarketplaceTemplates`), les curatés l'emportant en cas de collision d'id.
+
+---
+
+## Statut final
+
+Backlog **entièrement vidé**. `vite build` ✅, backend OK sur tous les endpoints,
+flux principaux (serveurs, projets, marketplace, backups, settings) fonctionnels
+de bout en bout. Aucun blocage restant.
