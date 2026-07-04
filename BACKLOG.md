@@ -28,6 +28,9 @@ bout en bout, **sauf deux flux réellement cassés** décrits ci-dessous.
   (depuis la page Servers **et** depuis le bouton « Add Server » d'un projet). Le
   serveur retombe en global (démo) ou échoue (backend). Corriger la condition pour
   transmettre `scopePath` dès que le scope n'est pas `'global'`.
+  _Break additionnel trouvé pendant l'exécution :_ `Projects.jsx › handleModalSave`
+  ignorait les données du formulaire (recharge seule) → « Add Server » depuis un
+  projet ne persistait rien. Routé vers `addServer`.
 
 - [x] **P2-1 · [S] · Reconstruction de chemin bancale dans le fallback legacy de `listBackups`.**
   `claudeConfig.js` (~l.85) : `path.join(parts.join('/')…, parts.pop())` évalue
