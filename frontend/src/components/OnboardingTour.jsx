@@ -43,6 +43,12 @@ const STEPS = [
         body: "Installez des intégrations préconfigurées (Filesystem, GitHub, PostgreSQL, Slack…) en un clic. Choisissez la portée puis « Install »."
     },
     {
+        target: '[data-tour="nav-backups"]',
+        path: '/backups',
+        title: 'Sauvegardes',
+        body: "Chaque modification d'un fichier de configuration crée une sauvegarde horodatée. Restaurez une version précédente ou faites le ménage en un clic."
+    },
+    {
         target: '[data-tour="nav-settings"]',
         path: '/settings',
         title: 'Réglages',

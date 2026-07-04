@@ -100,8 +100,32 @@ const MARKETPLACE_TEMPLATES = [
     }
 ];
 
+function seedBackups() {
+    return [
+        {
+            id: '%2Fhome%2Fuser%2F.claude.json_2026-07-01T14-30-05-123Z.bak',
+            fileName: '.claude.json',
+            originalPath: '/home/user/.claude.json',
+            backupPath: '~/.claude/mcp-manager-backups/.claude.json_2026-07-01.bak',
+            timestamp: '2026-07-01 14:30:05',
+            size: 4821,
+            createdAt: '2026-07-01T14:30:05.123Z'
+        },
+        {
+            id: '%2Fhome%2Fuser%2Fprojects%2Fmy-api%2F.mcp.json_2026-06-28T09-12-44-882Z.bak',
+            fileName: '.mcp.json',
+            originalPath: '/home/user/projects/my-api/.mcp.json',
+            backupPath: '~/.claude/mcp-manager-backups/.mcp.json_2026-06-28.bak',
+            timestamp: '2026-06-28 09:12:44',
+            size: 612,
+            createdAt: '2026-06-28T09:12:44.882Z'
+        }
+    ];
+}
+
 function seedState() {
     return {
+        backups: seedBackups(),
         servers: [
             {
                 id: 'srv_filesystem',
@@ -375,6 +399,29 @@ export const demo = {
             saveState();
         }
         return delay({ success: true, serverName: template.id });
+    },
+
+    // Backups --------------------------------------------------------------
+    getBackups: () => {
+        const state = loadState();
+        // States seeded before backups existed (older localStorage) get them lazily.
+        if (!state.backups) {
+            state.backups = seedBackups();
+            saveState();
+        }
+        return delay([...state.backups].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+    },
+    restoreBackup: (id) => {
+        const state = loadState();
+        const backup = (state.backups || []).find((b) => b.id === id);
+        if (!backup) return delay({ error: 'Backup not found' });
+        return delay({ success: true, message: 'Backup restored successfully', restoredPath: backup.originalPath });
+    },
+    deleteBackup: (id) => {
+        const state = loadState();
+        state.backups = (state.backups || []).filter((b) => b.id !== id);
+        saveState();
+        return delay({ success: true });
     }
 };
 

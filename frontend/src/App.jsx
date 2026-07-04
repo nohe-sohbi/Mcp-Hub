@@ -5,6 +5,7 @@ import {
     Server,
     FolderOpen,
     Store,
+    Archive,
     Settings as SettingsIcon,
     Menu,
     X,
@@ -14,6 +15,7 @@ import Dashboard from './pages/Dashboard';
 import Servers from './pages/Servers';
 import Projects from './pages/Projects';
 import Marketplace from './pages/Marketplace';
+import Backups from './pages/Backups';
 import Settings from './pages/Settings';
 import OnboardingTour from './components/OnboardingTour';
 import { healthCheck, isDemoMode } from './services/api';
@@ -126,6 +128,12 @@ function App() {
                             </NavLink>
                         </li>
                         <li className="nav-item">
+                            <NavLink to="/backups" data-tour="nav-backups" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                                <Archive />
+                                <span>Backups</span>
+                            </NavLink>
+                        </li>
+                        <li className="nav-item">
                             <NavLink to="/settings" data-tour="nav-settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
                                 <SettingsIcon />
                                 <span>Settings</span>
@@ -164,6 +172,7 @@ function App() {
                     <Route path="/servers" element={<Servers />} />
                     <Route path="/projects" element={<Projects />} />
                     <Route path="/marketplace" element={<Marketplace />} />
+                    <Route path="/backups" element={<Backups />} />
                     <Route path="/settings" element={<Settings />} />
                 </Routes>
             </main>

@@ -148,4 +148,18 @@ export const installTemplate = (data) => withDemo(
     () => demo.installTemplate(data)
 );
 
+// Backups
+export const getBackups = () => withDemo(
+    () => api.get('/backups').then(res => res.data),
+    () => demo.getBackups()
+);
+export const restoreBackup = (id) => withDemo(
+    () => api.post(`/backups/${encodeURIComponent(id)}/restore`).then(res => res.data),
+    () => demo.restoreBackup(id)
+);
+export const deleteBackup = (id) => withDemo(
+    () => api.delete(`/backups/${encodeURIComponent(id)}`).then(res => res.data),
+    () => demo.deleteBackup(id)
+);
+
 export default api;
