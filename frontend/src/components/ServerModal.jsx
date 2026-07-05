@@ -82,7 +82,9 @@ function ServerModal({ server, projects, onClose, onSave, preSelectedProject }) 
             name: formData.name,
             config,
             scope: formData.scope,
-            scopePath: formData.scope === 'project' ? formData.scopePath : null
+            // Any non-global scope (e.g. 'project', 'user-local') is tied to a
+            // project directory and must carry its path.
+            scopePath: formData.scope === 'global' ? null : formData.scopePath
         });
     };
 

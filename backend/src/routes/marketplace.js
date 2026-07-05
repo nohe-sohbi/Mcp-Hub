@@ -2,11 +2,9 @@ import { Router } from 'express';
 import path from 'path';
 import { getProvider, addServerToProviders } from '../providers/index.js';
 import { getManagerConfig } from '../services/providerConfig.js';
+import { getMarketplaceTemplates } from '../services/claudeConfig.js';
 
 const router = Router();
-
-// Note: getMarketplaceTemplates is kept for discovering templates from plugins
-// For now we just use curated templates
 
 // Curated popular templates (in addition to discovered ones)
 const CURATED_TEMPLATES = [
@@ -88,12 +86,31 @@ const CURATED_TEMPLATES = [
     }
 ];
 
+/**
+ * Get all available templates: the curated list plus any discovered from
+ * installed Claude plugins. Discovered templates never override curated ones
+ * (curated wins on id collision).
+ * @returns {Promise<Array>}
+ */
+async function getAllTemplates() {
+    let discovered = [];
+    try {
+        discovered = await getMarketplaceTemplates();
+    } catch (error) {
+        console.error('Error discovering marketplace templates:', error);
+    }
+
+    const curatedIds = new Set(CURATED_TEMPLATES.map(t => t.id));
+    const extras = discovered.filter(t => !curatedIds.has(t.id));
+
+    return [...CURATED_TEMPLATES, ...extras];
+}
+
 // GET /api/marketplace - List all available templates
 router.get('/', async (req, res, next) => {
     try {
-        // Return curated templates
-        // TODO: Add discovered templates from plugins later
-        res.json(CURATED_TEMPLATES);
+        const templates = await getAllTemplates();
+        res.json(templates);
     } catch (error) {
         next(error);
     }
@@ -104,8 +121,9 @@ router.post('/install', async (req, res, next) => {
     try {
         const { templateId, scope, scopePath, customConfig, providers } = req.body;
 
-        // Find template
-        let template = CURATED_TEMPLATES.find(t => t.id === templateId);
+        // Find template among curated + discovered
+        const allTemplates = await getAllTemplates();
+        let template = allTemplates.find(t => t.id === templateId);
 
         if (!template) {
             return res.status(404).json({ error: 'Template not found' });

@@ -82,7 +82,9 @@ export async function listBackups() {
                 originalPath = decodeURIComponent(parts.join('_'));
             } catch (e) {
                 // Fallback if % was in legacy filename but not valid URI encoded
-                originalPath = path.join(parts.join('/').replace(/^/, '/'), parts.pop());
+                const legacyFileName = parts.pop();
+                const dirPath = parts.join('/').replace(/^/, '/');
+                originalPath = path.join(dirPath, legacyFileName);
             }
             fileName = path.basename(originalPath);
         } else {

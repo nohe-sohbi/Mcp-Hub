@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FolderOpen, Server, ChevronRight, MapPin, Plus } from 'lucide-react';
-import { getProjects, getServers, toggleServer } from '../services/api';
+import { getProjects, getServers, toggleServer, addServer } from '../services/api';
 import ServerModal from '../components/ServerModal';
 
 function Projects() {
@@ -49,9 +49,14 @@ function Projects() {
         setSelectedProject(null);
     };
 
-    const handleModalSave = async () => {
-        loadData();
-        handleModalClose();
+    const handleModalSave = async (data) => {
+        try {
+            await addServer(data);
+            loadData();
+            handleModalClose();
+        } catch (error) {
+            console.error('Failed to save server:', error);
+        }
     };
 
     if (loading) {
