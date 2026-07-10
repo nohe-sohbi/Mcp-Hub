@@ -46,7 +46,7 @@ providers, gérer les backups) sont accessibles et cohérents de bout en bout.
 
 ## 🟢 Contenu à compléter / nettoyage
 
-- [ ] **P2-1 · [S] · Code mort dans `services/claudeConfig.js`.** Les fonctions CRUD
+- [x] **P2-1 · [S] · Code mort dans `services/claudeConfig.js`.** Les fonctions CRUD
   serveur antérieures à la migration vers l'architecture « providers »
   (`getAllServers`, `addServer`, `updateServer`, `deleteServer`, `toggleServer`) ne
   sont référencées par **aucune route** — les routes passent toutes par le registre de
@@ -57,6 +57,9 @@ providers, gérer les backups) sont accessibles et cohérents de bout en bout.
 
 ---
 
-## Statut
+## Statut final
 
-Audit terminé. **En attente de validation** avant exécution de la Phase 2.
+Backlog **entièrement vidé**. `vite build` ✅, backend OK sur tous les endpoints
+(`/health`, `/providers`, `/servers`, `/marketplace`, `/projects`, `/backups`), et les
+serveurs de portée projet sont désormais listés, activables et supprimables de bout en
+bout (list + toggle + delete vérifiés en live). Aucun blocage restant.
