@@ -1,70 +1,62 @@
-# BACKLOG — Audit & sprint MCP Manager
+# BACKLOG — Audit & sprint MCP Manager (v2)
 
-Audit réalisé sur la branche `claude/repo-audit-sprint-wb3tox`.
+Nouvel audit sur la branche `claude/repo-audit-execution-sp6os6`, après clôture du
+premier sprint (PR #1 & #2 mergées).
 
-**État général** : le repo compile (`vite build` OK), le backend démarre et répond
-sur tous ses endpoints (`/api/health`, `/providers`, `/servers`, `/marketplace`,
-`/projects`, `/backups`). L'app est un **produit de démo** (React/Vite + backend
-Express) avec un mode démo client-side (localStorage) qui prend le relais quand
-l'API échoue. La sécurité a déjà été durcie (voir `.jules/sentinel.md`).
+**État général** : le repo compile (`vite build` ✅), le backend démarre et répond sur
+tous ses endpoints (`/api/health`, `/providers`, `/servers`, `/marketplace`,
+`/projects`, `/backups`). C'est un **produit de démo** (React/Vite + backend Express)
+avec un repli client-side (`localStorage`) qui masque les défauts du backend réel dès
+qu'une requête échoue. La sécurité a déjà été durcie (voir `.jules/sentinel.md`).
 
-Le cœur du produit — gérer des serveurs MCP par provider/scope — est câblé de
-bout en bout, **sauf deux flux réellement cassés** décrits ci-dessous.
+Le premier backlog est intégralement vidé. Cet audit repart de zéro et se concentre
+sur les **incohérences réelles restantes** entre le chemin d'écriture et le chemin de
+lecture côté backend réel — invisibles en mode démo, bloquantes en usage réel.
 
 ---
 
 ## 🔴 À réparer
 
-- [x] **P0-1 · [S] · Éditer un serveur crée un doublon au lieu de le mettre à jour.**
-  `Servers.jsx › handleModalSave` appelle toujours `addServer(data)`, même en mode
-  édition. Résultat : « Edit » sur un serveur existant en crée un nouveau (id
-  différent en démo → doublon ; côté backend réel, perte du scope). Doit appeler
-  `updateServer(id, config)` quand on édite.
-
-- [x] **P0-2 · [S] · Ajouter un serveur à un projet perd toujours le chemin (scopePath).**
-  `ServerModal.jsx › handleSubmit` envoie `scopePath: formData.scope === 'project' ? … : null`,
-  mais les options de scope du formulaire valent `'global'` / `'user-local'` — jamais
-  `'project'`. Donc `scopePath` est **toujours `null`** pour un serveur de projet
-  (depuis la page Servers **et** depuis le bouton « Add Server » d'un projet). Le
-  serveur retombe en global (démo) ou échoue (backend). Corriger la condition pour
-  transmettre `scopePath` dès que le scope n'est pas `'global'`.
-  _Break additionnel trouvé pendant l'exécution :_ `Projects.jsx › handleModalSave`
-  ignorait les données du formulaire (recharge seule) → « Add Server » depuis un
-  projet ne persistait rien. Routé vers `addServer`.
-
-- [x] **P2-1 · [S] · Reconstruction de chemin bancale dans le fallback legacy de `listBackups`.**
-  `claudeConfig.js` (~l.85) : `path.join(parts.join('/')…, parts.pop())` évalue
-  `parts.join` puis `parts.pop()`, ce qui duplique le dernier segment. Chemin de
-  secours rarement atteint, mais incorrect. Aligné sur la même logique que le reste.
+- [x] **P0-1 · [M] · Les serveurs de portée projet sont écrits mais jamais listés (backend réel).**
+  `providers/index.js › getServersFromProviders` n'interroge que
+  `provider.getGlobalServers()` — jamais `getProjectServers()`. Conséquence : ajouter un
+  serveur à un projet (page **Servers** scope « Project (Local) », bouton **« Add Server »**
+  d'un projet, ou **installation marketplace** avec scope projet) écrit bien le
+  `.mcp.json` mais le serveur **n'apparaît nulle part** :
+  filtre « project » de la page Servers vide, liste des serveurs par projet vide,
+  état install/désinstall du marketplace erroné, compteurs du Dashboard faux.
+  _Prouvé_ : `POST /servers` (scope=project) → fichier `.mcp.json` écrit, puis
+  `GET /servers` → `[]`. Le flux « chaque projet a sa config MCP locale » (mis en avant
+  dans l'UI) est donc cassé de bout en bout sur le backend réel.
+  **Correction** : étendre `getServersFromProviders` pour agréger aussi les serveurs de
+  projet — pour chaque provider actif supportant les projets, parcourir les projets
+  connus (`getProjects()` du service `claudeConfig`) et appeler
+  `provider.getProjectServers(project.path)`, en renseignant `scopeName` pour l'affichage.
 
 ---
 
 ## 🟡 Essentiel manquant
 
-_Aucun._ Les parcours principaux (ajouter / éditer / activer / supprimer un serveur,
-parcourir projets, installer/désinstaller depuis le marketplace, régler les
-providers) sont tous accessibles et fonctionnels une fois les P0 corrigés.
+_Aucun._ Une fois P0-1 corrigé, tous les parcours principaux (ajouter / éditer /
+activer / supprimer un serveur global **ou projet**, parcourir les projets,
+installer / désinstaller depuis le marketplace en global **ou projet**, régler les
+providers, gérer les backups) sont accessibles et cohérents de bout en bout.
 
 ---
 
-## 🟢 Contenu à compléter
+## 🟢 Contenu à compléter / nettoyage
 
-- [x] **P2-2 · [M] · API Backups sans UI.** Le backend exposait `GET/POST/DELETE
-  /api/backups` mais aucune page ne le consommait (et `services/api.js` ne
-  l'exposait pas). Ajouté : fonctions API + repli démo (`getBackups`,
-  `restoreBackup`, `deleteBackup`), handlers de démo avec données seed, et une
-  page **Backups** (liste / restaurer / supprimer) câblée dans la navigation, le
-  routing et la visite guidée. _(Débloqué après validation « Go ».)_
-
-- [x] **P2-3 · [S] · `marketplace.js` TODO** « Add discovered templates from plugins
-  later ». Les routes marketplace (GET + install) fusionnent désormais les
-  templates curatés et ceux découverts dans les plugins Claude installés
-  (`getMarketplaceTemplates`), les curatés l'emportant en cas de collision d'id.
+- [ ] **P2-1 · [S] · Code mort dans `services/claudeConfig.js`.** Les fonctions CRUD
+  serveur antérieures à la migration vers l'architecture « providers »
+  (`getAllServers`, `addServer`, `updateServer`, `deleteServer`, `toggleServer`) ne
+  sont référencées par **aucune route** — les routes passent toutes par le registre de
+  providers (`providers/index.js`). Elles portent une logique de parsing d'ID
+  divergente (`scope:name` au lieu de `providerId:scope:...`) qui prête à confusion.
+  Non bloquant. Optionnel : les retirer (avec leur entrée dans l'export par défaut) pour
+  éviter deux implémentations concurrentes.
 
 ---
 
-## Statut final
+## Statut
 
-Backlog **entièrement vidé**. `vite build` ✅, backend OK sur tous les endpoints,
-flux principaux (serveurs, projets, marketplace, backups, settings) fonctionnels
-de bout en bout. Aucun blocage restant.
+Audit terminé. **En attente de validation** avant exécution de la Phase 2.

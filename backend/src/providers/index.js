@@ -2,6 +2,7 @@ import os from 'os';
 import ClaudeCodeProvider from './ClaudeCodeProvider.js';
 import ClaudeDesktopProvider from './ClaudeDesktopProvider.js';
 import OpenCodeProvider from './OpenCodeProvider.js';
+import { getProjects } from '../services/claudeConfig.js';
 
 /**
  * Humanize a file path for display (replace home directory with ~)
@@ -115,6 +116,7 @@ export async function getProvidersInfo(activeProviderIds = [], defaultProviderId
 export async function getServersFromProviders(providerIds) {
     const allServers = [];
 
+    // Global servers
     for (const providerId of providerIds) {
         const provider = getProvider(providerId);
         if (!provider) continue;
@@ -123,7 +125,34 @@ export async function getServersFromProviders(providerIds) {
             const servers = await provider.getGlobalServers();
             allServers.push(...servers);
         } catch (error) {
-            console.error(`Error getting servers from ${providerId}:`, error);
+            console.error(`Error getting global servers from ${providerId}:`, error);
+        }
+    }
+
+    // Project-scoped servers — read from each known Claude project so that
+    // servers added to a project (Servers page, Projects "Add Server",
+    // marketplace project install) are actually visible in the UI.
+    let projects = [];
+    try {
+        projects = await getProjects();
+    } catch (error) {
+        console.error('Error listing projects for project servers:', error);
+    }
+
+    for (const providerId of providerIds) {
+        const provider = getProvider(providerId);
+        if (!provider || !provider.supportsProjects()) continue;
+
+        for (const project of projects) {
+            try {
+                const servers = await provider.getProjectServers(project.path);
+                for (const server of servers) {
+                    // Attach the human-readable project name for display.
+                    allServers.push({ ...server, scopeName: project.name });
+                }
+            } catch (error) {
+                console.error(`Error getting project servers from ${providerId} for ${project.path}:`, error);
+            }
         }
     }
 
