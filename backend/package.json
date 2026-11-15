@@ -12,5 +12,10 @@
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "fs-extra": "^11.2.0"
+  },
+  "overrides": {
+    "express": {
+      "body-parser": "1.20.9"
+    }
   }
 }
