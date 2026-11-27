@@ -1,6 +1,6 @@
-import fs from 'fs-extra';
-import path from 'path';
-import os from 'os';
+import fs from "fs-extra";
+import path from "path";
+import os from "os";
 
 /**
  * MCP Manager Configuration Service
@@ -11,8 +11,8 @@ import os from 'os';
  * Config location: ~/.mcp-manager/config.json
  */
 
-const MCP_MANAGER_DIR = path.join(os.homedir(), '.mcp-manager');
-const MCP_MANAGER_CONFIG = path.join(MCP_MANAGER_DIR, 'config.json');
+const MCP_MANAGER_DIR = path.join(os.homedir(), ".mcp-manager");
+const MCP_MANAGER_CONFIG = path.join(MCP_MANAGER_DIR, "config.json");
 
 /**
  * Default configuration
@@ -21,9 +21,9 @@ const MCP_MANAGER_CONFIG = path.join(MCP_MANAGER_DIR, 'config.json');
  * - syncOnInstall: Whether to install to all active providers by default
  */
 const DEFAULT_CONFIG = {
-    activeProviders: ['claude-code'],  // Default to Claude Code CLI
-    defaultProvider: 'claude-code',
-    syncOnInstall: false
+  activeProviders: ["claude-code"], // Default to Claude Code CLI
+  defaultProvider: "claude-code",
+  syncOnInstall: false,
 };
 
 /**
@@ -31,17 +31,17 @@ const DEFAULT_CONFIG = {
  * @returns {Promise<Object>}
  */
 export async function getManagerConfig() {
-    try {
-        if (await fs.pathExists(MCP_MANAGER_CONFIG)) {
-            const config = await fs.readJson(MCP_MANAGER_CONFIG);
-            // Merge with defaults to ensure all fields exist
-            return { ...DEFAULT_CONFIG, ...config };
-        }
-        return { ...DEFAULT_CONFIG };
-    } catch (error) {
-        console.error('Error reading MCP Manager config:', error);
-        return { ...DEFAULT_CONFIG };
+  try {
+    if (await fs.pathExists(MCP_MANAGER_CONFIG)) {
+      const config = await fs.readJson(MCP_MANAGER_CONFIG);
+      // Merge with defaults to ensure all fields exist
+      return { ...DEFAULT_CONFIG, ...config };
     }
+    return { ...DEFAULT_CONFIG };
+  } catch (error) {
+    console.error("Error reading MCP Manager config:", error);
+    return { ...DEFAULT_CONFIG };
+  }
 }
 
 /**
@@ -49,13 +49,13 @@ export async function getManagerConfig() {
  * @param {Object} config
  */
 export async function saveManagerConfig(config) {
-    try {
-        await fs.ensureDir(MCP_MANAGER_DIR);
-        await fs.writeJson(MCP_MANAGER_CONFIG, config, { spaces: 2 });
-    } catch (error) {
-        console.error('Error saving MCP Manager config:', error);
-        throw error;
-    }
+  try {
+    await fs.ensureDir(MCP_MANAGER_DIR);
+    await fs.writeJson(MCP_MANAGER_CONFIG, config, { spaces: 2 });
+  } catch (error) {
+    console.error("Error saving MCP Manager config:", error);
+    throw error;
+  }
 }
 
 /**
@@ -63,8 +63,8 @@ export async function saveManagerConfig(config) {
  * @returns {Promise<string[]>}
  */
 export async function getActiveProviders() {
-    const config = await getManagerConfig();
-    return config.activeProviders;
+  const config = await getManagerConfig();
+  return config.activeProviders;
 }
 
 /**
@@ -72,15 +72,15 @@ export async function getActiveProviders() {
  * @param {string[]} providerIds
  */
 export async function setActiveProviders(providerIds) {
-    const config = await getManagerConfig();
-    config.activeProviders = providerIds;
+  const config = await getManagerConfig();
+  config.activeProviders = providerIds;
 
-    // Ensure default provider is in active list
-    if (!providerIds.includes(config.defaultProvider) && providerIds.length > 0) {
-        config.defaultProvider = providerIds[0];
-    }
+  // Ensure default provider is in active list
+  if (!providerIds.includes(config.defaultProvider) && providerIds.length > 0) {
+    config.defaultProvider = providerIds[0];
+  }
 
-    await saveManagerConfig(config);
+  await saveManagerConfig(config);
 }
 
 /**
@@ -88,8 +88,8 @@ export async function setActiveProviders(providerIds) {
  * @returns {Promise<string>}
  */
 export async function getDefaultProvider() {
-    const config = await getManagerConfig();
-    return config.defaultProvider;
+  const config = await getManagerConfig();
+  return config.defaultProvider;
 }
 
 /**
@@ -97,15 +97,15 @@ export async function getDefaultProvider() {
  * @param {string} providerId
  */
 export async function setDefaultProvider(providerId) {
-    const config = await getManagerConfig();
-    config.defaultProvider = providerId;
+  const config = await getManagerConfig();
+  config.defaultProvider = providerId;
 
-    // Ensure default provider is active
-    if (!config.activeProviders.includes(providerId)) {
-        config.activeProviders.push(providerId);
-    }
+  // Ensure default provider is active
+  if (!config.activeProviders.includes(providerId)) {
+    config.activeProviders.push(providerId);
+  }
 
-    await saveManagerConfig(config);
+  await saveManagerConfig(config);
 }
 
 /**
@@ -113,8 +113,8 @@ export async function setDefaultProvider(providerId) {
  * @returns {Promise<boolean>}
  */
 export async function getSyncOnInstall() {
-    const config = await getManagerConfig();
-    return config.syncOnInstall;
+  const config = await getManagerConfig();
+  return config.syncOnInstall;
 }
 
 /**
@@ -122,9 +122,9 @@ export async function getSyncOnInstall() {
  * @param {boolean} enabled
  */
 export async function setSyncOnInstall(enabled) {
-    const config = await getManagerConfig();
-    config.syncOnInstall = enabled;
-    await saveManagerConfig(config);
+  const config = await getManagerConfig();
+  config.syncOnInstall = enabled;
+  await saveManagerConfig(config);
 }
 
 /**
@@ -133,26 +133,28 @@ export async function setSyncOnInstall(enabled) {
  * @returns {Promise<boolean>} New active state
  */
 export async function toggleProvider(providerId) {
-    const config = await getManagerConfig();
-    const isActive = config.activeProviders.includes(providerId);
+  const config = await getManagerConfig();
+  const isActive = config.activeProviders.includes(providerId);
 
-    if (isActive) {
-        // Don't allow deactivating the last provider
-        if (config.activeProviders.length === 1) {
-            throw new Error('Cannot deactivate the last active provider');
-        }
-        config.activeProviders = config.activeProviders.filter(id => id !== providerId);
-
-        // If deactivating default provider, set new default
-        if (config.defaultProvider === providerId) {
-            config.defaultProvider = config.activeProviders[0];
-        }
-    } else {
-        config.activeProviders.push(providerId);
+  if (isActive) {
+    // Don't allow deactivating the last provider
+    if (config.activeProviders.length === 1) {
+      throw new Error("Cannot deactivate the last active provider");
     }
+    config.activeProviders = config.activeProviders.filter(
+      (id) => id !== providerId,
+    );
 
-    await saveManagerConfig(config);
-    return !isActive;
+    // If deactivating default provider, set new default
+    if (config.defaultProvider === providerId) {
+      config.defaultProvider = config.activeProviders[0];
+    }
+  } else {
+    config.activeProviders.push(providerId);
+  }
+
+  await saveManagerConfig(config);
+  return !isActive;
 }
 
 /**
@@ -160,28 +162,30 @@ export async function toggleProvider(providerId) {
  * @param {Object} updates - Partial config object
  */
 export async function updateManagerConfig(updates) {
-    const config = await getManagerConfig();
-    const updatedConfig = { ...config, ...updates };
+  const config = await getManagerConfig();
+  const updatedConfig = { ...config, ...updates };
 
-    // Validate: default provider must be in active providers
-    if (updatedConfig.activeProviders.length > 0 &&
-        !updatedConfig.activeProviders.includes(updatedConfig.defaultProvider)) {
-        updatedConfig.defaultProvider = updatedConfig.activeProviders[0];
-    }
+  // Validate: default provider must be in active providers
+  if (
+    updatedConfig.activeProviders.length > 0 &&
+    !updatedConfig.activeProviders.includes(updatedConfig.defaultProvider)
+  ) {
+    updatedConfig.defaultProvider = updatedConfig.activeProviders[0];
+  }
 
-    await saveManagerConfig(updatedConfig);
-    return updatedConfig;
+  await saveManagerConfig(updatedConfig);
+  return updatedConfig;
 }
 
 export default {
-    getManagerConfig,
-    saveManagerConfig,
-    getActiveProviders,
-    setActiveProviders,
-    getDefaultProvider,
-    setDefaultProvider,
-    getSyncOnInstall,
-    setSyncOnInstall,
-    toggleProvider,
-    updateManagerConfig
+  getManagerConfig,
+  saveManagerConfig,
+  getActiveProviders,
+  setActiveProviders,
+  getDefaultProvider,
+  setDefaultProvider,
+  getSyncOnInstall,
+  setSyncOnInstall,
+  toggleProvider,
+  updateManagerConfig,
 };

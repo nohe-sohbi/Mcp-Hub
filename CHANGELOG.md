@@ -8,5 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Security
+
 - Fixed multiple high/moderate severity vulnerabilities in frontend dependencies by updating packages via `npm audit fix`.
 - Fixed moderate severity vulnerability in backend dependencies (qs) by utilizing `npm overrides`.
