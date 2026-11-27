@@ -1,5 +1,8 @@
 import { Router } from "express";
+<<<<<<< Updated upstream
 import path from "path";
+=======
+>>>>>>> Stashed changes
 import {
   getProvider,
   getServersFromProviders,
@@ -25,6 +28,7 @@ function parseServerId(id) {
   if (parts.length < 3) {
     throw new Error(`Invalid server ID format: ${id}`);
   }
+<<<<<<< Updated upstream
 
   const providerId = parts[0];
   const scope = parts[1];
@@ -41,17 +45,29 @@ function parseServerId(id) {
       throw new Error("Invalid server name: Reserved keyword");
     }
 
+=======
+
+  const providerId = parts[0];
+  const scope = parts[1];
+
+  if (scope === "global") {
+>>>>>>> Stashed changes
     return {
       providerId,
       scope,
       scopePath: null,
+<<<<<<< Updated upstream
       serverName,
+=======
+      serverName: parts.slice(2).join(":"), // Handle server names with colons
+>>>>>>> Stashed changes
     };
   } else {
     // Project scope: providerId:project:projectPath:serverName
     if (parts.length < 4) {
       throw new Error(`Invalid project server ID format: ${id}`);
     }
+<<<<<<< Updated upstream
 
     const scopePath = decodeURIComponent(parts[2]);
 
@@ -78,6 +94,13 @@ function parseServerId(id) {
       scope,
       scopePath,
       serverName,
+=======
+    return {
+      providerId,
+      scope,
+      scopePath: parts[2],
+      serverName: parts.slice(3).join(":"),
+>>>>>>> Stashed changes
     };
   }
 }
@@ -130,6 +153,7 @@ router.post("/", async (req, res, next) => {
       return res.status(400).json({ error: "Name and config are required" });
     }
 
+<<<<<<< Updated upstream
     if (typeof name !== "string") {
       return res.status(400).json({ error: "Server name must be a string" });
     }
@@ -145,12 +169,15 @@ router.post("/", async (req, res, next) => {
         .json({ error: "Invalid server name: Reserved keyword" });
     }
 
+=======
+>>>>>>> Stashed changes
     if (scope === "project" && !scopePath) {
       return res
         .status(400)
         .json({ error: "scopePath is required for project scope" });
     }
 
+<<<<<<< Updated upstream
     // SECURITY: Prevent path traversal
     if (
       scope === "project" &&
@@ -164,6 +191,8 @@ router.post("/", async (req, res, next) => {
         });
     }
 
+=======
+>>>>>>> Stashed changes
     // Determine target providers
     let targetProviders;
     if (providers && providers.length > 0) {
@@ -253,11 +282,17 @@ router.put("/:id", async (req, res, next) => {
       await provider.saveGlobalConfig(updatedConfig);
     } else {
       if (!provider.supportsProjects()) {
+<<<<<<< Updated upstream
         return res
           .status(400)
           .json({
             error: `${provider.name} does not support project-level configuration`,
           });
+=======
+        return res.status(400).json({
+          error: `${provider.name} does not support project-level configuration`,
+        });
+>>>>>>> Stashed changes
       }
 
       const projectConfig = await provider.getProjectConfig(scopePath);
@@ -305,11 +340,17 @@ router.delete("/:id", async (req, res, next) => {
       await provider.removeGlobalServer(serverName);
     } else {
       if (!provider.supportsProjects()) {
+<<<<<<< Updated upstream
         return res
           .status(400)
           .json({
             error: `${provider.name} does not support project-level configuration`,
           });
+=======
+        return res.status(400).json({
+          error: `${provider.name} does not support project-level configuration`,
+        });
+>>>>>>> Stashed changes
       }
       await provider.removeProjectServer(scopePath, serverName);
     }
@@ -355,11 +396,17 @@ router.post("/:id/toggle", async (req, res, next) => {
       await provider.saveGlobalConfig(updatedConfig);
     } else {
       if (!provider.supportsProjects()) {
+<<<<<<< Updated upstream
         return res
           .status(400)
           .json({
             error: `${provider.name} does not support project-level configuration`,
           });
+=======
+        return res.status(400).json({
+          error: `${provider.name} does not support project-level configuration`,
+        });
+>>>>>>> Stashed changes
       }
 
       const projectConfig = await provider.getProjectConfig(scopePath);

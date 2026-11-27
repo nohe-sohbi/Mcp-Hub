@@ -2,7 +2,10 @@ import os from "os";
 import ClaudeCodeProvider from "./ClaudeCodeProvider.js";
 import ClaudeDesktopProvider from "./ClaudeDesktopProvider.js";
 import OpenCodeProvider from "./OpenCodeProvider.js";
+<<<<<<< Updated upstream
 import { getProjects } from "../services/claudeConfig.js";
+=======
+>>>>>>> Stashed changes
 
 /**
  * Humanize a file path for display (replace home directory with ~)
@@ -119,7 +122,10 @@ export async function getProvidersInfo(
 export async function getServersFromProviders(providerIds) {
   const allServers = [];
 
+<<<<<<< Updated upstream
   // Global servers
+=======
+>>>>>>> Stashed changes
   for (const providerId of providerIds) {
     const provider = getProvider(providerId);
     if (!provider) continue;
@@ -128,6 +134,7 @@ export async function getServersFromProviders(providerIds) {
       const servers = await provider.getGlobalServers();
       allServers.push(...servers);
     } catch (error) {
+<<<<<<< Updated upstream
       console.error(`Error getting global servers from ${providerId}:`, error);
     }
   }
@@ -162,6 +169,12 @@ export async function getServersFromProviders(providerIds) {
     }
   }
 
+=======
+      console.error(`Error getting servers from ${providerId}:`, error);
+    }
+  }
+
+>>>>>>> Stashed changes
   return allServers;
 }
 

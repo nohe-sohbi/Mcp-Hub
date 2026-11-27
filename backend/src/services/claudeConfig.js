@@ -22,17 +22,31 @@ export async function createBackup(filePath) {
   await fs.ensureDir(BACKUPS_DIR);
 
   // Generate timestamped backup filename
+<<<<<<< Updated upstream
   // SECURITY: Prevent path collision and corruption via safe URL encoding
   const encodedPath = encodeURIComponent(filePath);
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const backupFileName = `${encodedPath}_${timestamp}.bak`;
+=======
+  const fileName = path.basename(filePath);
+  const dirName = path
+    .dirname(filePath)
+    .replace(/[\/\\]/g, "_")
+    .replace(/^_/, "");
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const backupFileName = `${dirName}_${fileName}_${timestamp}.bak`;
+>>>>>>> Stashed changes
   const backupPath = path.join(BACKUPS_DIR, backupFileName);
 
   // Create the backup
   await fs.copy(filePath, backupPath);
 
   // Rotate old backups (keep only MAX_BACKUPS_PER_FILE)
+<<<<<<< Updated upstream
   await rotateBackups(encodedPath);
+=======
+  await rotateBackups(fileName, dirName);
+>>>>>>> Stashed changes
 
   return backupPath;
 }
@@ -40,8 +54,13 @@ export async function createBackup(filePath) {
 /**
  * Keep only the most recent backups for a file
  */
+<<<<<<< Updated upstream
 async function rotateBackups(encodedPath) {
   const pattern = `${encodedPath}_`;
+=======
+async function rotateBackups(fileName, dirName) {
+  const pattern = `${dirName}_${fileName}_`;
+>>>>>>> Stashed changes
   const allFiles = await fs.readdir(BACKUPS_DIR);
   const matchingBackups = allFiles
     .filter((f) => f.startsWith(pattern) && f.endsWith(".bak"))
@@ -61,6 +80,7 @@ export async function listBackups() {
   if (!(await fs.pathExists(BACKUPS_DIR))) {
     return [];
   }
+<<<<<<< Updated upstream
 
   const files = await fs.readdir(BACKUPS_DIR);
   const backups = [];
@@ -105,6 +125,35 @@ export async function listBackups() {
     });
   }
 
+=======
+
+  const files = await fs.readdir(BACKUPS_DIR);
+  const backups = [];
+
+  for (const file of files) {
+    if (!file.endsWith(".bak")) continue;
+
+    const filePath = path.join(BACKUPS_DIR, file);
+    const stats = await fs.stat(filePath);
+
+    // Parse backup filename: dirPath_fileName_timestamp.bak
+    const parts = file.replace(".bak", "").split("_");
+    const timestamp = parts.pop();
+    const fileName = parts.pop();
+    const dirPath = parts.join("/").replace(/^/, "/");
+
+    backups.push({
+      id: file,
+      fileName,
+      originalPath: path.join(dirPath, fileName),
+      backupPath: filePath,
+      timestamp: timestamp.replace(/-/g, ":").replace("T", " ").slice(0, 19),
+      size: stats.size,
+      createdAt: stats.mtime,
+    });
+  }
+
+>>>>>>> Stashed changes
   return backups.sort((a, b) => b.createdAt - a.createdAt);
 }
 
@@ -112,6 +161,7 @@ export async function listBackups() {
  * Restore a backup
  */
 export async function restoreBackup(backupId) {
+<<<<<<< Updated upstream
   // SECURITY: Prevent path traversal
   if (
     typeof backupId !== "string" ||
@@ -124,6 +174,10 @@ export async function restoreBackup(backupId) {
 
   const backupPath = path.join(BACKUPS_DIR, backupId);
 
+=======
+  const backupPath = path.join(BACKUPS_DIR, backupId);
+
+>>>>>>> Stashed changes
   if (!(await fs.pathExists(backupPath))) {
     throw new Error("Backup not found");
   }
@@ -131,6 +185,7 @@ export async function restoreBackup(backupId) {
   // Parse original path from backup filename
   const parts = backupId.replace(".bak", "").split("_");
   parts.pop(); // Remove timestamp
+<<<<<<< Updated upstream
 
   let originalPath;
   if (backupId.includes("%")) {
@@ -147,6 +202,11 @@ export async function restoreBackup(backupId) {
     const dirPath = parts.join("/").replace(/^/, "/");
     originalPath = path.join(dirPath, fileName);
   }
+=======
+  const fileName = parts.pop();
+  const dirPath = parts.join("/").replace(/^/, "/");
+  const originalPath = path.join(dirPath, fileName);
+>>>>>>> Stashed changes
 
   // Create a backup of current state before restoring
   if (await fs.pathExists(originalPath)) {
@@ -163,6 +223,7 @@ export async function restoreBackup(backupId) {
  * Delete a backup
  */
 export async function deleteBackup(backupId) {
+<<<<<<< Updated upstream
   // SECURITY: Prevent path traversal
   if (
     typeof backupId !== "string" ||
@@ -179,6 +240,14 @@ export async function deleteBackup(backupId) {
     throw new Error("Backup not found");
   }
 
+=======
+  const backupPath = path.join(BACKUPS_DIR, backupId);
+
+  if (!(await fs.pathExists(backupPath))) {
+    throw new Error("Backup not found");
+  }
+
+>>>>>>> Stashed changes
   await fs.remove(backupPath);
   return true;
 }
@@ -451,6 +520,230 @@ export async function saveUserLocalMcpConfig(projectPath, servers) {
 
   await fs.writeJson(USER_CONFIG_FILE, userConfig, { spaces: 2 });
   return USER_CONFIG_FILE;
+<<<<<<< Updated upstream
+=======
+}
+
+/**
+ * Get all MCP servers from all sources
+ */
+export async function getAllServers() {
+  const servers = [];
+
+  // Get global servers
+  const globalSettings = await getGlobalSettings();
+  const globalServers = globalSettings.mcpServers || {};
+
+  for (const [name, config] of Object.entries(globalServers)) {
+    servers.push({
+      id: `global:${name}`,
+      name,
+      scope: "global",
+      scopePath: null,
+      config,
+      enabled: config.enabled !== false,
+      type: getServerType(config),
+    });
+  }
+
+  // Get project servers
+  const projects = await getProjects();
+
+  for (const project of projects) {
+    const projectConfigs = await getProjectMcpConfig(project.path);
+
+    for (const { location, path: configPath, config } of projectConfigs) {
+      // Handle both { mcpServers: {...} } and { serverName: {...} } formats
+      const mcpServers = config.mcpServers || config;
+
+      for (const [name, serverConfig] of Object.entries(mcpServers)) {
+        if (name === "mcpServers") continue; // Skip if it was the wrapper
+
+        servers.push({
+          id: `${location}:${project.path}:${name}`,
+          name,
+          scope: location,
+          scopePath: project.path,
+          scopeName: project.name,
+          configPath,
+          config: serverConfig,
+          enabled: serverConfig.enabled !== false,
+          type: getServerType(serverConfig),
+        });
+      }
+    }
+  }
+
+  return servers;
+}
+
+/**
+ * Determine server type from config
+ */
+function getServerType(config) {
+  if (config.type === "http" || config.type === "sse") {
+    return config.type;
+  }
+  if (config.command) {
+    return "stdio";
+  }
+  if (config.url) {
+    return config.url.includes("/sse") ? "sse" : "http";
+  }
+  return "unknown";
+}
+
+/**
+ * Add a new MCP server
+ */
+export async function addServer(name, config, scope, scopePath = null) {
+  if (scope === "global") {
+    const settings = await getGlobalSettings();
+    if (!settings.mcpServers) {
+      settings.mcpServers = {};
+    }
+    settings.mcpServers[name] = config;
+    await saveGlobalSettings(settings);
+  } else if (scope === "user-local") {
+    // Write to ~/.claude.json projects structure
+    let userConfig = {};
+    if (await fs.pathExists(USER_CONFIG_FILE)) {
+      userConfig = await fs.readJson(USER_CONFIG_FILE);
+    }
+
+    if (!userConfig.projects) {
+      userConfig.projects = {};
+    }
+
+    if (!userConfig.projects[scopePath]) {
+      userConfig.projects[scopePath] = {
+        mcpServers: {},
+        enabledMcpjsonServers: [],
+        disabledMcpjsonServers: [],
+      };
+    }
+
+    if (!userConfig.projects[scopePath].mcpServers) {
+      userConfig.projects[scopePath].mcpServers = {};
+    }
+
+    // Add type: stdio if not present (Claude format)
+    const serverConfig = { ...config };
+    if (config.command && !config.type) {
+      serverConfig.type = "stdio";
+    }
+
+    userConfig.projects[scopePath].mcpServers[name] = serverConfig;
+
+    await createBackup(USER_CONFIG_FILE);
+    await fs.writeJson(USER_CONFIG_FILE, userConfig, { spaces: 2 });
+  } else {
+    const location = scope; // 'project' or 'claude'
+    const projectConfigs = await getProjectMcpConfig(scopePath);
+
+    let existingConfig = {};
+    let configPath = null;
+
+    // Find existing config for this location
+    for (const pc of projectConfigs) {
+      if (pc.location === location) {
+        existingConfig = pc.config;
+        configPath = pc.path;
+        break;
+      }
+    }
+
+    // Handle mcpServers wrapper format
+    if (existingConfig.mcpServers) {
+      existingConfig.mcpServers[name] = config;
+    } else {
+      existingConfig[name] = config;
+    }
+
+    await saveProjectMcpConfig(scopePath, existingConfig, location);
+  }
+}
+
+/**
+ * Update an existing MCP server
+ */
+export async function updateServer(id, newConfig) {
+  const [scope, ...rest] = id.split(":");
+
+  if (scope === "global") {
+    const name = rest[0];
+    const settings = await getGlobalSettings();
+    if (settings.mcpServers && settings.mcpServers[name]) {
+      settings.mcpServers[name] = {
+        ...settings.mcpServers[name],
+        ...newConfig,
+      };
+      await saveGlobalSettings(settings);
+    }
+  } else {
+    const name = rest.pop();
+    const scopePath = rest.join(":");
+    const projectConfigs = await getProjectMcpConfig(scopePath);
+
+    for (const { location, path: configPath, config } of projectConfigs) {
+      if (location === scope) {
+        const mcpServers = config.mcpServers || config;
+        if (mcpServers[name]) {
+          mcpServers[name] = { ...mcpServers[name], ...newConfig };
+          await saveProjectMcpConfig(scopePath, config, location);
+          break;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Delete an MCP server
+ */
+export async function deleteServer(id) {
+  const [scope, ...rest] = id.split(":");
+
+  if (scope === "global") {
+    const name = rest[0];
+    const settings = await getGlobalSettings();
+    if (settings.mcpServers) {
+      delete settings.mcpServers[name];
+      await saveGlobalSettings(settings);
+    }
+  } else {
+    const name = rest.pop();
+    const scopePath = rest.join(":");
+    const projectConfigs = await getProjectMcpConfig(scopePath);
+
+    for (const { location, config } of projectConfigs) {
+      if (location === scope) {
+        if (config.mcpServers) {
+          delete config.mcpServers[name];
+        } else {
+          delete config[name];
+        }
+        await saveProjectMcpConfig(scopePath, config, location);
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * Toggle server enabled state
+ */
+export async function toggleServer(id) {
+  const servers = await getAllServers();
+  const server = servers.find((s) => s.id === id);
+
+  if (server) {
+    await updateServer(id, { enabled: !server.enabled });
+    return !server.enabled;
+  }
+
+  return null;
+>>>>>>> Stashed changes
 }
 
 /**
@@ -507,6 +800,14 @@ export default {
   getProjects,
   getProjectMcpConfig,
   saveProjectMcpConfig,
+<<<<<<< Updated upstream
+=======
+  getAllServers,
+  addServer,
+  updateServer,
+  deleteServer,
+  toggleServer,
+>>>>>>> Stashed changes
   getMarketplaceTemplates,
   createBackup,
   listBackups,

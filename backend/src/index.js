@@ -25,8 +25,12 @@ app.use(
     credentials: true,
   }),
 );
+<<<<<<< Updated upstream
 // SECURITY: Enforce payload limit to prevent DoS
 app.use(express.json({ limit: "1mb" }));
+=======
+app.use(express.json());
+>>>>>>> Stashed changes
 
 // Routes
 app.use("/api/providers", providersRouter);
@@ -43,8 +47,12 @@ app.get("/api/health", (req, res) => {
 // Error handler
 app.use((err, req, res, next) => {
   console.error("Error:", err);
+<<<<<<< Updated upstream
   // SECURITY: Don't leak error details to the client
   res.status(500).json({ error: "Internal Server Error" });
+=======
+  res.status(500).json({ error: err.message });
+>>>>>>> Stashed changes
 });
 
 app.listen(PORT, () => {

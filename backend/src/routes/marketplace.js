@@ -1,8 +1,13 @@
 import { Router } from "express";
+<<<<<<< Updated upstream
 import path from "path";
 import { getProvider, addServerToProviders } from "../providers/index.js";
 import { getManagerConfig } from "../services/providerConfig.js";
 import { getMarketplaceTemplates } from "../services/claudeConfig.js";
+=======
+import { getProvider, addServerToProviders } from "../providers/index.js";
+import { getManagerConfig } from "../services/providerConfig.js";
+>>>>>>> Stashed changes
 
 const router = Router();
 
@@ -114,8 +119,14 @@ async function getAllTemplates() {
 // GET /api/marketplace - List all available templates
 router.get("/", async (req, res, next) => {
   try {
+<<<<<<< Updated upstream
     const templates = await getAllTemplates();
     res.json(templates);
+=======
+    // Return curated templates
+    // TODO: Add discovered templates from plugins later
+    res.json(CURATED_TEMPLATES);
+>>>>>>> Stashed changes
   } catch (error) {
     next(error);
   }
@@ -126,14 +137,20 @@ router.post("/install", async (req, res, next) => {
   try {
     const { templateId, scope, scopePath, customConfig, providers } = req.body;
 
+<<<<<<< Updated upstream
     // Find template among curated + discovered
     const allTemplates = await getAllTemplates();
     let template = allTemplates.find((t) => t.id === templateId);
+=======
+    // Find template
+    let template = CURATED_TEMPLATES.find((t) => t.id === templateId);
+>>>>>>> Stashed changes
 
     if (!template) {
       return res.status(404).json({ error: "Template not found" });
     }
 
+<<<<<<< Updated upstream
     if (scope === "project" && !scopePath) {
       return res
         .status(400)
@@ -153,6 +170,8 @@ router.post("/install", async (req, res, next) => {
         });
     }
 
+=======
+>>>>>>> Stashed changes
     // Get the server config (handle both formats)
     let serverName = templateId;
     let serverConfig = template.config;
@@ -173,6 +192,7 @@ router.post("/install", async (req, res, next) => {
       }
     }
 
+<<<<<<< Updated upstream
     if (typeof serverName !== "string") {
       return res.status(400).json({ error: "Server name must be a string" });
     }
@@ -188,6 +208,8 @@ router.post("/install", async (req, res, next) => {
         .json({ error: "Invalid server name: Reserved keyword" });
     }
 
+=======
+>>>>>>> Stashed changes
     // Merge with custom config
     const finalConfig = { ...serverConfig, ...customConfig };
 

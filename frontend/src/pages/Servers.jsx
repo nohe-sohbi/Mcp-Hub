@@ -13,7 +13,10 @@ import {
   getProjects,
   getProviders,
   addServer,
+<<<<<<< Updated upstream
   updateServer,
+=======
+>>>>>>> Stashed changes
   deleteServer,
   toggleServer,
 } from "../services/api";
@@ -83,11 +86,15 @@ function Servers() {
 
   const handleModalSave = async (data) => {
     try {
+<<<<<<< Updated upstream
       if (editingServer) {
         await updateServer(editingServer.id, data.config);
       } else {
         await addServer(data);
       }
+=======
+      await addServer(data);
+>>>>>>> Stashed changes
       loadData();
       handleModalClose();
     } catch (error) {
