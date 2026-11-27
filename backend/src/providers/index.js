@@ -3,7 +3,10 @@ import ClaudeCodeProvider from "./ClaudeCodeProvider.js";
 import ClaudeDesktopProvider from "./ClaudeDesktopProvider.js";
 import OpenCodeProvider from "./OpenCodeProvider.js";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { getProjects } from "../services/claudeConfig.js";
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 
@@ -123,7 +126,10 @@ export async function getServersFromProviders(providerIds) {
   const allServers = [];
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // Global servers
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   for (const providerId of providerIds) {
@@ -134,6 +140,7 @@ export async function getServersFromProviders(providerIds) {
       const servers = await provider.getGlobalServers();
       allServers.push(...servers);
     } catch (error) {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
       console.error(`Error getting global servers from ${providerId}:`, error);
     }
@@ -169,6 +176,12 @@ export async function getServersFromProviders(providerIds) {
     }
   }
 
+=======
+      console.error(`Error getting servers from ${providerId}:`, error);
+    }
+  }
+
+>>>>>>> Stashed changes
 =======
       console.error(`Error getting servers from ${providerId}:`, error);
     }

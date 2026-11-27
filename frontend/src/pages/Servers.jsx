@@ -14,7 +14,10 @@ import {
   getProviders,
   addServer,
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   updateServer,
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
   deleteServer,
@@ -87,11 +90,15 @@ function Servers() {
   const handleModalSave = async (data) => {
     try {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       if (editingServer) {
         await updateServer(editingServer.id, data.config);
       } else {
         await addServer(data);
       }
+=======
+      await addServer(data);
+>>>>>>> Stashed changes
 =======
       await addServer(data);
 >>>>>>> Stashed changes

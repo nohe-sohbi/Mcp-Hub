@@ -9,6 +9,12 @@ MCP Manager est une interface de configuration de serveurs MCP (Model Context
 Protocol). Elle comprend un backend Node.js et un frontend React/Vite.
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+
+- **Frontend**: React, Vite
+- **Backend**: Express.js (Port 3001)
+  > > > > > > > Stashed changes
 
 ## Mode démo
 
@@ -69,5 +75,8 @@ The application manages configuration in:
 - `.mcp.json` (Project)
 
 Backups are stored in `~/.claude/mcp-manager-backups/`.
+<<<<<<< Updated upstream
 
+> > > > > > > # Stashed changes
+> > > > > > >
 > > > > > > > Stashed changes

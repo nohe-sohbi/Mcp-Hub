@@ -23,11 +23,14 @@ export async function createBackup(filePath) {
 
   // Generate timestamped backup filename
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // SECURITY: Prevent path collision and corruption via safe URL encoding
   const encodedPath = encodeURIComponent(filePath);
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const backupFileName = `${encodedPath}_${timestamp}.bak`;
 =======
+=======
+>>>>>>> Stashed changes
   const fileName = path.basename(filePath);
   const dirName = path
     .dirname(filePath)
@@ -35,6 +38,9 @@ export async function createBackup(filePath) {
     .replace(/^_/, "");
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const backupFileName = `${dirName}_${fileName}_${timestamp}.bak`;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   const backupPath = path.join(BACKUPS_DIR, backupFileName);
 
@@ -43,7 +49,11 @@ export async function createBackup(filePath) {
 
   // Rotate old backups (keep only MAX_BACKUPS_PER_FILE)
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   await rotateBackups(encodedPath);
+=======
+  await rotateBackups(fileName, dirName);
+>>>>>>> Stashed changes
 =======
   await rotateBackups(fileName, dirName);
 >>>>>>> Stashed changes
@@ -60,6 +70,9 @@ async function rotateBackups(encodedPath) {
 =======
 async function rotateBackups(fileName, dirName) {
   const pattern = `${dirName}_${fileName}_`;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   const allFiles = await fs.readdir(BACKUPS_DIR);
   const matchingBackups = allFiles
@@ -80,6 +93,7 @@ export async function listBackups() {
   if (!(await fs.pathExists(BACKUPS_DIR))) {
     return [];
   }
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 
   const files = await fs.readdir(BACKUPS_DIR);
@@ -154,6 +168,35 @@ export async function listBackups() {
   }
 
 >>>>>>> Stashed changes
+=======
+
+  const files = await fs.readdir(BACKUPS_DIR);
+  const backups = [];
+
+  for (const file of files) {
+    if (!file.endsWith(".bak")) continue;
+
+    const filePath = path.join(BACKUPS_DIR, file);
+    const stats = await fs.stat(filePath);
+
+    // Parse backup filename: dirPath_fileName_timestamp.bak
+    const parts = file.replace(".bak", "").split("_");
+    const timestamp = parts.pop();
+    const fileName = parts.pop();
+    const dirPath = parts.join("/").replace(/^/, "/");
+
+    backups.push({
+      id: file,
+      fileName,
+      originalPath: path.join(dirPath, fileName),
+      backupPath: filePath,
+      timestamp: timestamp.replace(/-/g, ":").replace("T", " ").slice(0, 19),
+      size: stats.size,
+      createdAt: stats.mtime,
+    });
+  }
+
+>>>>>>> Stashed changes
   return backups.sort((a, b) => b.createdAt - a.createdAt);
 }
 
@@ -161,6 +204,7 @@ export async function listBackups() {
  * Restore a backup
  */
 export async function restoreBackup(backupId) {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
   // SECURITY: Prevent path traversal
   if (
@@ -178,6 +222,10 @@ export async function restoreBackup(backupId) {
   const backupPath = path.join(BACKUPS_DIR, backupId);
 
 >>>>>>> Stashed changes
+=======
+  const backupPath = path.join(BACKUPS_DIR, backupId);
+
+>>>>>>> Stashed changes
   if (!(await fs.pathExists(backupPath))) {
     throw new Error("Backup not found");
   }
@@ -185,6 +233,7 @@ export async function restoreBackup(backupId) {
   // Parse original path from backup filename
   const parts = backupId.replace(".bak", "").split("_");
   parts.pop(); // Remove timestamp
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 
   let originalPath;
@@ -207,6 +256,11 @@ export async function restoreBackup(backupId) {
   const dirPath = parts.join("/").replace(/^/, "/");
   const originalPath = path.join(dirPath, fileName);
 >>>>>>> Stashed changes
+=======
+  const fileName = parts.pop();
+  const dirPath = parts.join("/").replace(/^/, "/");
+  const originalPath = path.join(dirPath, fileName);
+>>>>>>> Stashed changes
 
   // Create a backup of current state before restoring
   if (await fs.pathExists(originalPath)) {
@@ -224,6 +278,7 @@ export async function restoreBackup(backupId) {
  */
 export async function deleteBackup(backupId) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // SECURITY: Prevent path traversal
   if (
     typeof backupId !== "string" ||
@@ -240,6 +295,14 @@ export async function deleteBackup(backupId) {
     throw new Error("Backup not found");
   }
 
+=======
+  const backupPath = path.join(BACKUPS_DIR, backupId);
+
+  if (!(await fs.pathExists(backupPath))) {
+    throw new Error("Backup not found");
+  }
+
+>>>>>>> Stashed changes
 =======
   const backupPath = path.join(BACKUPS_DIR, backupId);
 
@@ -521,7 +584,10 @@ export async function saveUserLocalMcpConfig(projectPath, servers) {
   await fs.writeJson(USER_CONFIG_FILE, userConfig, { spaces: 2 });
   return USER_CONFIG_FILE;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 }
 
 /**
@@ -743,6 +809,9 @@ export async function toggleServer(id) {
   }
 
   return null;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 }
 
@@ -801,12 +870,18 @@ export default {
   getProjectMcpConfig,
   saveProjectMcpConfig,
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
   getAllServers,
   addServer,
   updateServer,
   deleteServer,
   toggleServer,
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   getMarketplaceTemplates,
   createBackup,

@@ -1,6 +1,9 @@
 import { Router } from "express";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import path from "path";
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 import {
@@ -29,6 +32,7 @@ function parseServerId(id) {
     throw new Error(`Invalid server ID format: ${id}`);
   }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
   const providerId = parts[0];
   const scope = parts[1];
@@ -52,12 +56,23 @@ function parseServerId(id) {
 
   if (scope === "global") {
 >>>>>>> Stashed changes
+=======
+
+  const providerId = parts[0];
+  const scope = parts[1];
+
+  if (scope === "global") {
+>>>>>>> Stashed changes
     return {
       providerId,
       scope,
       scopePath: null,
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       serverName,
+=======
+      serverName: parts.slice(2).join(":"), // Handle server names with colons
+>>>>>>> Stashed changes
 =======
       serverName: parts.slice(2).join(":"), // Handle server names with colons
 >>>>>>> Stashed changes
@@ -67,6 +82,7 @@ function parseServerId(id) {
     if (parts.length < 4) {
       throw new Error(`Invalid project server ID format: ${id}`);
     }
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 
     const scopePath = decodeURIComponent(parts[2]);
@@ -95,11 +111,16 @@ function parseServerId(id) {
       scopePath,
       serverName,
 =======
+=======
+>>>>>>> Stashed changes
     return {
       providerId,
       scope,
       scopePath: parts[2],
       serverName: parts.slice(3).join(":"),
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     };
   }
@@ -154,6 +175,7 @@ router.post("/", async (req, res, next) => {
     }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     if (typeof name !== "string") {
       return res.status(400).json({ error: "Server name must be a string" });
     }
@@ -171,12 +193,15 @@ router.post("/", async (req, res, next) => {
 
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     if (scope === "project" && !scopePath) {
       return res
         .status(400)
         .json({ error: "scopePath is required for project scope" });
     }
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
     // SECURITY: Prevent path traversal
     if (
@@ -191,6 +216,8 @@ router.post("/", async (req, res, next) => {
         });
     }
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
     // Determine target providers
@@ -283,11 +310,17 @@ router.put("/:id", async (req, res, next) => {
     } else {
       if (!provider.supportsProjects()) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         return res
           .status(400)
           .json({
             error: `${provider.name} does not support project-level configuration`,
           });
+=======
+        return res.status(400).json({
+          error: `${provider.name} does not support project-level configuration`,
+        });
+>>>>>>> Stashed changes
 =======
         return res.status(400).json({
           error: `${provider.name} does not support project-level configuration`,
@@ -341,11 +374,17 @@ router.delete("/:id", async (req, res, next) => {
     } else {
       if (!provider.supportsProjects()) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         return res
           .status(400)
           .json({
             error: `${provider.name} does not support project-level configuration`,
           });
+=======
+        return res.status(400).json({
+          error: `${provider.name} does not support project-level configuration`,
+        });
+>>>>>>> Stashed changes
 =======
         return res.status(400).json({
           error: `${provider.name} does not support project-level configuration`,
@@ -397,11 +436,17 @@ router.post("/:id/toggle", async (req, res, next) => {
     } else {
       if (!provider.supportsProjects()) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         return res
           .status(400)
           .json({
             error: `${provider.name} does not support project-level configuration`,
           });
+=======
+        return res.status(400).json({
+          error: `${provider.name} does not support project-level configuration`,
+        });
+>>>>>>> Stashed changes
 =======
         return res.status(400).json({
           error: `${provider.name} does not support project-level configuration`,

@@ -47,11 +47,14 @@ export default class BaseProvider {
     if (!this.projectConfigPath) return null;
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     // SECURITY: Prevent path traversal
     if (!path.isAbsolute(projectPath) || projectPath.includes("..")) {
       throw new Error(
         "Invalid project path: Must be absolute and cannot contain traversal sequences",
 =======
+=======
+>>>>>>> Stashed changes
     const configPath = path.join(projectPath, this.projectConfigPath);
     try {
       if (await fs.pathExists(configPath)) {
@@ -76,11 +79,15 @@ export default class BaseProvider {
     if (!this.projectConfigPath) {
       throw new Error(
         `${this.name} does not support project-level configuration`,
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       );
     }
 
     const configPath = path.join(projectPath, this.projectConfigPath);
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
     try {
       if (await fs.pathExists(configPath)) {
@@ -94,6 +101,8 @@ export default class BaseProvider {
       );
       return null;
 =======
+=======
+>>>>>>> Stashed changes
     await fs.writeJson(configPath, config, { spaces: 2 });
   }
 
@@ -142,11 +151,15 @@ export default class BaseProvider {
       return await fs.pathExists(configDir);
     } catch {
       return false;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     }
   }
 
   /**
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
    * Save project-level configuration
    * @param {string} projectPath - The project directory path
@@ -361,6 +374,150 @@ export default class BaseProvider {
     await this.saveProjectConfig(projectPath, updatedConfig);
   }
 
+=======
+   * Check if this provider supports project-level configuration
+   * @returns {boolean}
+   */
+  supportsProjects() {
+    return this.projectConfigPath !== null;
+  }
+
+  /**
+   * Validate a server configuration for this provider
+   * @param {Object} serverConfig - The server config to validate
+   * @returns {{ valid: boolean, errors?: string[] }}
+   */
+  validateServerConfig(serverConfig) {
+    const errors = [];
+
+    // Basic validation - must have either command (stdio) or url (http/sse)
+    if (!serverConfig.command && !serverConfig.url) {
+      errors.push(
+        'Server must have either "command" (for stdio) or "url" (for http/sse)',
+      );
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors: errors.length > 0 ? errors : undefined,
+    };
+  }
+
+  /**
+   * Get all servers from global config
+   * @returns {Promise<Array>} Array of server objects with metadata
+   */
+  async getGlobalServers() {
+    const config = await this.getGlobalConfig();
+    const servers = this.extractServers(config);
+
+    return Object.entries(servers).map(([name, serverConfig]) => ({
+      id: `${this.id}:global:${name}`,
+      name,
+      scope: "global",
+      scopePath: null,
+      provider: this.id,
+      providerName: this.name,
+      config: serverConfig,
+      enabled: serverConfig.enabled !== false,
+      type: this.getServerType(serverConfig),
+    }));
+  }
+
+  /**
+   * Get all servers from a project config
+   * @param {string} projectPath - The project directory path
+   * @returns {Promise<Array>} Array of server objects with metadata
+   */
+  async getProjectServers(projectPath) {
+    if (!this.supportsProjects()) return [];
+
+    const config = await this.getProjectConfig(projectPath);
+    if (!config) return [];
+
+    const servers = this.extractServers(config);
+
+    return Object.entries(servers).map(([name, serverConfig]) => ({
+      id: `${this.id}:project:${projectPath}:${name}`,
+      name,
+      scope: "project",
+      scopePath: projectPath,
+      provider: this.id,
+      providerName: this.name,
+      config: serverConfig,
+      enabled: serverConfig.enabled !== false,
+      type: this.getServerType(serverConfig),
+    }));
+  }
+
+  /**
+   * Add a server to global config
+   * @param {string} name - Server name
+   * @param {Object} serverConfig - Server configuration
+   */
+  async addGlobalServer(name, serverConfig) {
+    const config = await this.getGlobalConfig();
+    const servers = this.extractServers(config);
+    servers[name] = serverConfig;
+    const updatedConfig = this.injectServers(config, servers);
+    await this.saveGlobalConfig(updatedConfig);
+  }
+
+  /**
+   * Add a server to project config
+   * @param {string} projectPath - Project directory path
+   * @param {string} name - Server name
+   * @param {Object} serverConfig - Server configuration
+   */
+  async addProjectServer(projectPath, name, serverConfig) {
+    if (!this.supportsProjects()) {
+      throw new Error(
+        `${this.name} does not support project-level configuration`,
+      );
+    }
+
+    let config =
+      (await this.getProjectConfig(projectPath)) || this.getDefaultConfig();
+    const servers = this.extractServers(config);
+    servers[name] = serverConfig;
+    const updatedConfig = this.injectServers(config, servers);
+    await this.saveProjectConfig(projectPath, updatedConfig);
+  }
+
+  /**
+   * Remove a server from global config
+   * @param {string} name - Server name
+   */
+  async removeGlobalServer(name) {
+    const config = await this.getGlobalConfig();
+    const servers = this.extractServers(config);
+    delete servers[name];
+    const updatedConfig = this.injectServers(config, servers);
+    await this.saveGlobalConfig(updatedConfig);
+  }
+
+  /**
+   * Remove a server from project config
+   * @param {string} projectPath - Project directory path
+   * @param {string} name - Server name
+   */
+  async removeProjectServer(projectPath, name) {
+    if (!this.supportsProjects()) {
+      throw new Error(
+        `${this.name} does not support project-level configuration`,
+      );
+    }
+
+    const config = await this.getProjectConfig(projectPath);
+    if (!config) return;
+
+    const servers = this.extractServers(config);
+    delete servers[name];
+    const updatedConfig = this.injectServers(config, servers);
+    await this.saveProjectConfig(projectPath, updatedConfig);
+  }
+
+>>>>>>> Stashed changes
 =======
    * Check if this provider supports project-level configuration
    * @returns {boolean}

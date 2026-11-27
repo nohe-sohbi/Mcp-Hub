@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { FolderOpen, Server, ChevronRight, MapPin, Plus } from "lucide-react";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import {
   getProjects,
   getServers,
   toggleServer,
   addServer,
 } from "../services/api";
+=======
+import { getProjects, getServers, toggleServer } from "../services/api";
+>>>>>>> Stashed changes
 =======
 import { getProjects, getServers, toggleServer } from "../services/api";
 >>>>>>> Stashed changes
@@ -59,6 +63,7 @@ function Projects() {
   };
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   const handleModalSave = async (data) => {
     try {
       await addServer(data);
@@ -67,6 +72,11 @@ function Projects() {
     } catch (error) {
       console.error("Failed to save server:", error);
     }
+=======
+  const handleModalSave = async () => {
+    loadData();
+    handleModalClose();
+>>>>>>> Stashed changes
 =======
   const handleModalSave = async () => {
     loadData();

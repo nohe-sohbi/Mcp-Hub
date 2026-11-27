@@ -26,9 +26,12 @@ app.use(
   }),
 );
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 // SECURITY: Enforce payload limit to prevent DoS
 app.use(express.json({ limit: "1mb" }));
 =======
+=======
+>>>>>>> Stashed changes
 app.use(express.json());
 >>>>>>> Stashed changes
 
@@ -48,9 +51,12 @@ app.get("/api/health", (req, res) => {
 app.use((err, req, res, next) => {
   console.error("Error:", err);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // SECURITY: Don't leak error details to the client
   res.status(500).json({ error: "Internal Server Error" });
 =======
+=======
+>>>>>>> Stashed changes
   res.status(500).json({ error: err.message });
 >>>>>>> Stashed changes
 });
