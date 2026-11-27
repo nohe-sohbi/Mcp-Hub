@@ -1,48 +1,64 @@
-import express from 'express';
-import cors from 'cors';
-import serversRouter from './routes/servers.js';
-import projectsRouter from './routes/projects.js';
-import marketplaceRouter from './routes/marketplace.js';
-import backupsRouter from './routes/backups.js';
-import providersRouter from './routes/providers.js';
+import express from "express";
+import cors from "cors";
+import serversRouter from "./routes/servers.js";
+import projectsRouter from "./routes/projects.js";
+import marketplaceRouter from "./routes/marketplace.js";
+import backupsRouter from "./routes/backups.js";
+import providersRouter from "./routes/providers.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Security Enhancements
-app.disable('x-powered-by');
+app.disable("x-powered-by");
 app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
   next();
 });
 
 // Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  }),
+);
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 // SECURITY: Enforce payload limit to prevent DoS
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: "1mb" }));
+=======
+=======
+>>>>>>> Stashed changes
+app.use(express.json());
+>>>>>>> Stashed changes
 
 // Routes
-app.use('/api/providers', providersRouter);
-app.use('/api/servers', serversRouter);
-app.use('/api/projects', projectsRouter);
-app.use('/api/marketplace', marketplaceRouter);
-app.use('/api/backups', backupsRouter);
+app.use("/api/providers", providersRouter);
+app.use("/api/servers", serversRouter);
+app.use("/api/projects", projectsRouter);
+app.use("/api/marketplace", marketplaceRouter);
+app.use("/api/backups", backupsRouter);
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error("Error:", err);
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
   // SECURITY: Don't leak error details to the client
-  res.status(500).json({ error: 'Internal Server Error' });
+  res.status(500).json({ error: "Internal Server Error" });
+=======
+=======
+>>>>>>> Stashed changes
+  res.status(500).json({ error: err.message });
+>>>>>>> Stashed changes
 });
 
 app.listen(PORT, () => {

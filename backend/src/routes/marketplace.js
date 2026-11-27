@@ -1,89 +1,104 @@
-import { Router } from 'express';
-import path from 'path';
-import { getProvider, addServerToProviders } from '../providers/index.js';
-import { getManagerConfig } from '../services/providerConfig.js';
-import { getMarketplaceTemplates } from '../services/claudeConfig.js';
+import { Router } from "express";
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+import path from "path";
+import { getProvider, addServerToProviders } from "../providers/index.js";
+import { getManagerConfig } from "../services/providerConfig.js";
+import { getMarketplaceTemplates } from "../services/claudeConfig.js";
+=======
+import { getProvider, addServerToProviders } from "../providers/index.js";
+import { getManagerConfig } from "../services/providerConfig.js";
+>>>>>>> Stashed changes
+=======
+import { getProvider, addServerToProviders } from "../providers/index.js";
+import { getManagerConfig } from "../services/providerConfig.js";
+>>>>>>> Stashed changes
 
 const router = Router();
 
 // Curated popular templates (in addition to discovered ones)
 const CURATED_TEMPLATES = [
-    {
-        id: 'filesystem',
-        name: 'Filesystem',
-        description: 'Access local files and directories',
-        category: 'utility',
-        config: {
-            command: 'npx',
-            args: ['-y', '@modelcontextprotocol/server-filesystem', '/home']
-        }
+  {
+    id: "filesystem",
+    name: "Filesystem",
+    description: "Access local files and directories",
+    category: "utility",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-filesystem", "/home"],
     },
-    {
-        id: 'sequential-thinking',
-        name: 'Sequential Thinking',
-        description: 'Step-by-step reasoning and problem solving',
-        category: 'utility',
-        config: {
-            command: 'npx',
-            args: ['-y', '@modelcontextprotocol/server-sequential-thinking']
-        }
+  },
+  {
+    id: "sequential-thinking",
+    name: "Sequential Thinking",
+    description: "Step-by-step reasoning and problem solving",
+    category: "utility",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-sequential-thinking"],
     },
-    {
-        id: 'puppeteer',
-        name: 'Puppeteer',
-        description: 'Browser automation and web scraping',
-        category: 'utility',
-        config: {
-            command: 'npx',
-            args: ['-y', '@modelcontextprotocol/server-puppeteer']
-        }
+  },
+  {
+    id: "puppeteer",
+    name: "Puppeteer",
+    description: "Browser automation and web scraping",
+    category: "utility",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-puppeteer"],
     },
-    {
-        id: 'postgres',
-        name: 'PostgreSQL',
-        description: 'Query PostgreSQL databases',
-        category: 'database',
-        config: {
-            command: 'npx',
-            args: ['-y', '@modelcontextprotocol/server-postgres'],
-            env: {
-                POSTGRES_CONNECTION_STRING: 'postgresql://user:pass@localhost:5432/db'
-            }
-        }
+  },
+  {
+    id: "postgres",
+    name: "PostgreSQL",
+    description: "Query PostgreSQL databases",
+    category: "database",
+    config: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-postgres"],
+      env: {
+        POSTGRES_CONNECTION_STRING: "postgresql://user:pass@localhost:5432/db",
+      },
     },
-    {
-        id: 'sqlite',
-        name: 'SQLite',
-        description: 'Query SQLite databases',
-        category: 'database',
-        config: {
-            command: 'npx',
-            args: ['-y', '@modelcontextprotocol/server-sqlite', '--db-path', './database.db']
-        }
+  },
+  {
+    id: "sqlite",
+    name: "SQLite",
+    description: "Query SQLite databases",
+    category: "database",
+    config: {
+      command: "npx",
+      args: [
+        "-y",
+        "@modelcontextprotocol/server-sqlite",
+        "--db-path",
+        "./database.db",
+      ],
     },
-    {
-        id: 'github-http',
-        name: 'GitHub',
-        description: 'Interact with GitHub repositories',
-        category: 'integration',
-        config: {
-            type: 'http',
-            url: 'https://api.githubcopilot.com/mcp/',
-            headers: {
-                'Authorization': 'Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}'
-            }
-        }
+  },
+  {
+    id: "github-http",
+    name: "GitHub",
+    description: "Interact with GitHub repositories",
+    category: "integration",
+    config: {
+      type: "http",
+      url: "https://api.githubcopilot.com/mcp/",
+      headers: {
+        Authorization: "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}",
+      },
     },
-    {
-        id: 'slack-sse',
-        name: 'Slack',
-        description: 'Send and receive Slack messages',
-        category: 'integration',
-        config: {
-            type: 'sse',
-            url: 'https://mcp.slack.com/sse'
-        }
-    }
+  },
+  {
+    id: "slack-sse",
+    name: "Slack",
+    description: "Send and receive Slack messages",
+    category: "integration",
+    config: {
+      type: "sse",
+      url: "https://mcp.slack.com/sse",
+    },
+  },
 ];
 
 /**
@@ -93,124 +108,181 @@ const CURATED_TEMPLATES = [
  * @returns {Promise<Array>}
  */
 async function getAllTemplates() {
-    let discovered = [];
-    try {
-        discovered = await getMarketplaceTemplates();
-    } catch (error) {
-        console.error('Error discovering marketplace templates:', error);
-    }
+  let discovered = [];
+  try {
+    discovered = await getMarketplaceTemplates();
+  } catch (error) {
+    console.error("Error discovering marketplace templates:", error);
+  }
 
-    const curatedIds = new Set(CURATED_TEMPLATES.map(t => t.id));
-    const extras = discovered.filter(t => !curatedIds.has(t.id));
+  const curatedIds = new Set(CURATED_TEMPLATES.map((t) => t.id));
+  const extras = discovered.filter((t) => !curatedIds.has(t.id));
 
-    return [...CURATED_TEMPLATES, ...extras];
+  return [...CURATED_TEMPLATES, ...extras];
 }
 
 // GET /api/marketplace - List all available templates
-router.get('/', async (req, res, next) => {
-    try {
-        const templates = await getAllTemplates();
-        res.json(templates);
-    } catch (error) {
-        next(error);
-    }
+router.get("/", async (req, res, next) => {
+  try {
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+    const templates = await getAllTemplates();
+    res.json(templates);
+=======
+    // Return curated templates
+    // TODO: Add discovered templates from plugins later
+    res.json(CURATED_TEMPLATES);
+>>>>>>> Stashed changes
+=======
+    // Return curated templates
+    // TODO: Add discovered templates from plugins later
+    res.json(CURATED_TEMPLATES);
+>>>>>>> Stashed changes
+  } catch (error) {
+    next(error);
+  }
 });
 
 // POST /api/marketplace/install - Install a template
-router.post('/install', async (req, res, next) => {
-    try {
-        const { templateId, scope, scopePath, customConfig, providers } = req.body;
+router.post("/install", async (req, res, next) => {
+  try {
+    const { templateId, scope, scopePath, customConfig, providers } = req.body;
 
-        // Find template among curated + discovered
-        const allTemplates = await getAllTemplates();
-        let template = allTemplates.find(t => t.id === templateId);
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+    // Find template among curated + discovered
+    const allTemplates = await getAllTemplates();
+    let template = allTemplates.find((t) => t.id === templateId);
+=======
+    // Find template
+    let template = CURATED_TEMPLATES.find((t) => t.id === templateId);
+>>>>>>> Stashed changes
+=======
+    // Find template
+    let template = CURATED_TEMPLATES.find((t) => t.id === templateId);
+>>>>>>> Stashed changes
 
-        if (!template) {
-            return res.status(404).json({ error: 'Template not found' });
-        }
-
-        if (scope === 'project' && !scopePath) {
-            return res.status(400).json({ error: 'scopePath is required for project scope' });
-        }
-
-        // SECURITY: Prevent path traversal
-        if (scope === 'project' && (!path.isAbsolute(scopePath) || scopePath.includes('..'))) {
-            return res.status(400).json({ error: 'Invalid project path: Must be absolute and cannot contain traversal sequences' });
-        }
-
-        // Get the server config (handle both formats)
-        let serverName = templateId;
-        let serverConfig = template.config;
-
-        // If config has server name as key
-        if (template.config && !template.config.command && !template.config.type && !template.config.url) {
-            const keys = Object.keys(template.config).filter(k => k !== 'mcpServers');
-            if (keys.length > 0) {
-                serverName = keys[0];
-                serverConfig = template.config[keys[0]];
-            }
-        }
-
-        if (typeof serverName !== 'string') {
-            return res.status(400).json({ error: 'Server name must be a string' });
-        }
-
-        // SECURITY: Prevent prototype pollution
-        if (serverName === '__proto__' || serverName === 'constructor' || serverName === 'prototype') {
-            return res.status(400).json({ error: 'Invalid server name: Reserved keyword' });
-        }
-
-        // Merge with custom config
-        const finalConfig = { ...serverConfig, ...customConfig };
-
-        // Determine target providers
-        let targetProviders;
-        if (providers && providers.length > 0) {
-            // Validate provider IDs
-            for (const id of providers) {
-                if (!getProvider(id)) {
-                    return res.status(400).json({ error: `Unknown provider: ${id}` });
-                }
-            }
-            targetProviders = providers;
-        } else {
-            // Use default provider or all active if syncOnInstall is enabled
-            const managerConfig = await getManagerConfig();
-            if (managerConfig.syncOnInstall) {
-                targetProviders = managerConfig.activeProviders;
-            } else {
-                targetProviders = [managerConfig.defaultProvider];
-            }
-        }
-
-        const results = await addServerToProviders(
-            serverName,
-            finalConfig,
-            scope || 'global',
-            scopePath,
-            targetProviders
-        );
-
-        // Check if any succeeded
-        const successes = results.filter(r => r.success);
-        const failures = results.filter(r => !r.success);
-
-        if (successes.length === 0) {
-            return res.status(500).json({
-                error: 'Failed to install template to any provider',
-                details: failures
-            });
-        }
-
-        res.status(201).json({
-            success: true,
-            message: `Installed '${serverName}' to ${successes.length} provider(s)`,
-            serverName,
-            results
-        });
-    } catch (error) {
-        next(error);
+    if (!template) {
+      return res.status(404).json({ error: "Template not found" });
     }
+
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+    if (scope === "project" && !scopePath) {
+      return res
+        .status(400)
+        .json({ error: "scopePath is required for project scope" });
+    }
+
+    // SECURITY: Prevent path traversal
+    if (
+      scope === "project" &&
+      (!path.isAbsolute(scopePath) || scopePath.includes(".."))
+    ) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "Invalid project path: Must be absolute and cannot contain traversal sequences",
+        });
+    }
+
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+    // Get the server config (handle both formats)
+    let serverName = templateId;
+    let serverConfig = template.config;
+
+    // If config has server name as key
+    if (
+      template.config &&
+      !template.config.command &&
+      !template.config.type &&
+      !template.config.url
+    ) {
+      const keys = Object.keys(template.config).filter(
+        (k) => k !== "mcpServers",
+      );
+      if (keys.length > 0) {
+        serverName = keys[0];
+        serverConfig = template.config[keys[0]];
+      }
+    }
+
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+    if (typeof serverName !== "string") {
+      return res.status(400).json({ error: "Server name must be a string" });
+    }
+
+    // SECURITY: Prevent prototype pollution
+    if (
+      serverName === "__proto__" ||
+      serverName === "constructor" ||
+      serverName === "prototype"
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Invalid server name: Reserved keyword" });
+    }
+
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+    // Merge with custom config
+    const finalConfig = { ...serverConfig, ...customConfig };
+
+    // Determine target providers
+    let targetProviders;
+    if (providers && providers.length > 0) {
+      // Validate provider IDs
+      for (const id of providers) {
+        if (!getProvider(id)) {
+          return res.status(400).json({ error: `Unknown provider: ${id}` });
+        }
+      }
+      targetProviders = providers;
+    } else {
+      // Use default provider or all active if syncOnInstall is enabled
+      const managerConfig = await getManagerConfig();
+      if (managerConfig.syncOnInstall) {
+        targetProviders = managerConfig.activeProviders;
+      } else {
+        targetProviders = [managerConfig.defaultProvider];
+      }
+    }
+
+    const results = await addServerToProviders(
+      serverName,
+      finalConfig,
+      scope || "global",
+      scopePath,
+      targetProviders,
+    );
+
+    // Check if any succeeded
+    const successes = results.filter((r) => r.success);
+    const failures = results.filter((r) => !r.success);
+
+    if (successes.length === 0) {
+      return res.status(500).json({
+        error: "Failed to install template to any provider",
+        details: failures,
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Installed '${serverName}' to ${successes.length} provider(s)`,
+      serverName,
+      results,
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 export default router;

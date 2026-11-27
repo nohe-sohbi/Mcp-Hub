@@ -8,7 +8,21 @@
 MCP Manager est une interface de configuration de serveurs MCP (Model Context
 Protocol). Elle comprend un backend Node.js et un frontend React/Vite.
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+
+- **Frontend**: React, Vite
+- **Backend**: Express.js (Port 3001)
+  > > > > > > > Stashed changes
+
 ## Mode démo
+
+=======
+
+- **Frontend**: React, Vite
+- **Backend**: Express.js (Port 3001)
+  > > > > > > > Stashed changes
 
 Pour que l'aperçu reste **entièrement cliquable même sans backend**, le frontend
 bascule automatiquement sur un jeu de **données de démo** (servies depuis le
@@ -30,5 +44,39 @@ le marketplace, basculer des providers… le tout sans serveur.
 docker compose -f docker-compose.dev.yml up
 ```
 
+<<<<<<< Updated upstream
 Le frontend est servi par Vite et le backend expose l'API consommée par
 l'interface.
+=======
+
+## Usage
+
+Start both services:
+
+```bash
+./start.sh
+```
+
+- **Frontend**: http://localhost:5173
+- **Backend**: http://localhost:3001
+
+### Docker
+
+```bash
+docker-compose up --build
+```
+
+## Configuration
+
+The application manages configuration in:
+
+- `~/.claude/settings.local.json` (Global)
+- `~/.claude.json` (User)
+- `.mcp.json` (Project)
+
+Backups are stored in `~/.claude/mcp-manager-backups/`.
+<<<<<<< Updated upstream
+
+> > > > > > > # Stashed changes
+> > > > > > >
+> > > > > > > Stashed changes
